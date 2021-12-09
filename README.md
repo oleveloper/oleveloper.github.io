@@ -1,28 +1,105 @@
-# Jekyll Theme Dark Reader
+# Jekyll-Paper
 
->A Minimal Dark theme for jekyll with minimal CSS and blazing fast loading of pages thanks to [Pill](https://github.com/rumkin/pill) 
+![Jekyll-Paper](./favicon.ico)
 
-[Live Demo](https://sharadcodes.github.io/jekyll-theme-dark-reader/)
+English | [简体中文](./README-CN.md)
 
-## How to install
+Jekyll Paper is a simple Jekyll theme, and it is aim to helping you to create your own blog by the easiest way.
 
-1. Download or clone the repo
-   `git clone https://github.com/sharadcodes/jekyll-theme-dark-reader.git`
-2. Enter the folder
-   `cd jekyll-theme-dark-reader`
-3. Run
-   `bundle install`
-4. Start Jekyll server
-   `bundle exec jekyll serve`
-5. Access via
-   * localhost or according to your pc configurations.
-6. Change the `_config.yml` file according to you.
-7. Upload the files on your repository and :sunglasses: enjoy.
+Unfortunately, Jekyll Paper implement the category page by 'jekyll-archive' plugin, and GitHub Pages does not support it. So, this project is for self-host blog, and the Github Pages version is also available in [Jekyll Paper for Github][jekyll-paper-github].
 
+This is a [demo website](https://www.ghosind.com) for Jekyll Paper.
 
-# Screenshots
+## Features
 
-## BLOG PAGE
-![Blog page](https://github.com/sharadcodes/jekyll-theme-dark-reader/raw/master/screenshots/1.png)
-## POST EXAMPLE
-![Post page](https://github.com/sharadcodes/jekyll-theme-dark-reader/raw/master/screenshots/2.png)
+- Responsive
+- Paginate
+- RSS
+- Sitemap
+- Custom 404 page
+- SASS
+- Internationalization
+- Configurable navigation menu
+- Categories Index
+- SEO optimization
+- Mathematics (MathJax)
+- Diagrams (Mermaid)
+- Comments (Disqus)
+
+## Getting Start
+
+Jekyll Paper is easy to create your own blog. You can create your blog by five steps only!
+
+1. `$ gem install bundler jekyll`
+2. `$ git clone git@github.com:ghosind/Jekyll-Paper.git`
+3. `$ cd Jekyll-Paper`
+4. `Jekyll-Paper $ bundle install`
+5. `Jekyll-Paper $ bundle exec jekyll serve`
+
+## Add New Posts
+
+You can add new posts at any time after you had your own blog. Create a new post need to add a new file in "_posts" directory, and the file name must follow the convention `YYYY-MM-DD-name-of-post.md`.
+
+## Custom Navigation Menu
+
+You can add or update navigation menu items in `_data/menus.yml` file. In the configuration file, you need set title and URL for every navigation menu item.
+
+### Example
+
+```yml
+- title: "Index"
+  url:   ""
+
+- title: "Github"
+  absoluteUrl: true
+  url: "https://github.com/john_doe"
+
+- title: "About"
+  url:   "about"
+```
+
+## Supported Languages
+
+Jekyll Paper has supported the following languages, please set language in `language` section of `_config.yml` file (default `language: en`). I'm anticipating you to help me improve the quality of translations and add more languages. The languages list by alphabets of its language code.
+
+- English
+- Deutsche (German)
+- Español (Spanish)
+- Français (French)
+- 日本語 (Japanese)
+- Português (Portuguese)
+- 简体中文 (Simplified Chinese)
+- 繁體中文 (Traditional Chinese)
+- 한국어 (Korean)
+
+## Screenshots
+
+The home page:
+
+![Index](./assets/images/index-screenshot.png)
+
+The post page:
+
+![Post](./assets/images/post-screenshot.png)
+
+The category page:
+
+![Category](./assets/images/category-screenshot.png)
+
+The home page in mobile version:
+
+![Mobile](./assets/images/mobile-screenshot.png)
+
+## License
+
+Jekyll Paper was released under MIT license.
+
+## Contributing
+
+If you would like to make Jekyll Paper better, you can create a new pull request in [Jekyll Paper Github Page][jekyll-paper].
+
+If you have any questions or suggestions, you can create an issue on [Jekyll Paper Issues][jekyll-paper-issues].
+
+[jekyll-paper]: https://github.com/ghosind/Jekyll-Paper
+[jekyll-paper-github]: https://github.com/ghosind/Jekyll-Paper-Github
+[jekyll-paper-issues]: https://github.com/ghosind/Jekyll-Paper/issues

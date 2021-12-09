@@ -1,9 +1,6 @@
-<footer>
-	<p>
-		{{site.data.extra.list.footer_bio}}
-	</p>
-	<p>
-		&copy 2019 | {{site.title}}
-	</p>
-</footer>
-<script src='{{site.baseurl}}/assets/js/site.js' id="pill_site_script" type='module'></script>
+<div class="footer-copyright">
+  <span class="footer-copyright-text float-left">Copyright &copy; {{ site.time | date: '%Y' }}. {{ site.domain }}.</span>
+  <span class="footer-copyright-text float-right">
+    Powered by <a href="https://jekyllrb.com/">Jekyll</a>, themed by <a href="https://github.com/ghosind/Jekyll-Paper">Jekyll-Paper</a>.
+  </span>
+</div>
