@@ -1,0 +1,9 @@
+---
+layout: post
+title:  "Comment"
+date:   2021-12-03
+last_modified_at: 2021-12-03
+categories: [Clean Code]
+tags: [Clean Code, Comment]
+---
+
