@@ -1,0 +1,10 @@
+---
+layout: post
+title:  "Formatting"
+date:   2022-03-27
+last_modified_at: 2022-03-27
+categories: [Clean Code]
+tags: [Clean Code, Formatting]
+---
+
+# Formatting 
