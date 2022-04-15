@@ -92,6 +92,16 @@ public int successfullyAttacked(int incomingDamage) {
 JavaDoc은 html로 이루어져 있기 때문에 html 문법도 사용 가능하다.   
 위의 @param은 함수 인자에 대한 설명이다.   
 그 외에도 @return은 결과 값이 무엇인지, @see 는 참고할 것은 무엇인지, @since는 버전에 대해서 작성한 것이다.
+더 자세한 내용은 아래를 참고한다. 
+```java
+@param provides any useful description about a method's parameter or input it should expect
+@return provides a description of what a method will or can return
+@see will generate a link similar to the {@link} tag, but more in the context of a reference and not inline
+@since specifies which version the class, field, or method was added to the project
+@version specifies the version of the software, commonly used with %I% and %G% macros
+@throws is used to further explain the cases the software would expect an exception
+@deprecated gives an explanation of why code was deprecated, when it may have been deprecated, and what the alternatives are
+```
 
 JavaDoc 문서가 만들어지게 되면 아래와 같은 모습을 띤다.   
 ![image](https://user-images.githubusercontent.com/83587720/163568657-03bacae4-6fde-47bb-b192-7e7abce04bc3.png)
