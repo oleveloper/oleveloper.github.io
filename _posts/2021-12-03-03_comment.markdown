@@ -7,3 +7,94 @@ categories: [Clean Code]
 tags: [Clean Code, Comment]
 ---
 
+# Comment
+### 주석을 최대한 쓰지 말자
+* 주석은 나쁜 코드를 보완하지 못한다. 
+코드로 충분히 자신의 의도를 표현할 수 있다. 코드에 주석을 추가하는 이유는 대부분의 코드 품질이 나쁘기 때문이다.   
+메서드나 변수의 이름을 잘 지어서 주석을 사용하지 않을 수 있다. 
+
+* 주석은 방치된다.
+코드는 변화하며 계속 관리가 되지만 주석은 의미없는 텍스트로 남는다.   
+따라서 주석을 최대한 자제한다.
+
+
+### 좋은 주석
+* 구현에 대한 정보를 제공한다.
+예를 들어 정규식 같은 경우에 대해서 어떠한 format에 대해 구현한 것인지 주석으로 작성한다.
+
+* 의도와 중요성을 설명한다.
+코드를 왜 이렇게 만들었는지에 대해서 작성할 수 있다. 
+```java
+// trim을 통해 유저로부터 입력받은 유저명을 저장할 때 공백 제거 필요
+String name = nameInput.trim();
+```
+
+* TODO, FIXME
+  - //TODO : 지금 당장은 해결하지 않지만 앞으로 해야할 일을 적어둘 때 사용한다.
+  - //FIXME : 문제는 있으나 당장 수정 할 필요는 없을 때 사용한다.
+
+
+### 주석보다 annotation
+#### annotation
+코드에 대한 메타데이터를 의미한다. annotation은 코드의 실행에 간섭하기도 하고, 코드에 대한 정보를 줄 수도 있다.   
+- @Deprecated : Compiler에 의해 Warning이 발생된다. 
+- @NotThreadSafe : Thread Safe하지 않음을 나타냄. 주석보다는 annotation을 많이 사용한다. 
+
+
+### JavaDoc
+Java 코드에서 API 문서를 HTML 형식으로 생성해주는 tool이다.
+JavaDoc을 사용할 때는 아래와 같이 작성한다. 
+```java
+/**
+ * Javadoc
+ */
+```
+
+Class level에서의 JavaDoc은 아래와 같다.
+아래와 같이 작성하면 JavaDoc에서 Class로 link 된다.
+```java
+/**
+* Hero is the main entity we'll be using to . . .
+* 
+* Please see the {@link com.baeldung.javadoc.Person} class for true identity
+* @author Captain America
+* 
+*/
+public class SuperHero extends Person {
+    // fields and methods
+}
+```
+
+Field level에서의 JavaDoc은 아래와 같다.
+```java
+/**
+ * The public name of a hero that is common knowledge
+ */
+private String heroName;
+```
+
+Method level에서의 JavaDoc은 아래와 같다.
+```java
+/**
+ * <p>This is a simple description of the method. . .
+ * <a href="http://www.supermanisthegreatest.com">Superman!</a>
+ * </p>
+ * @param incomingDamage the amount of incoming damage
+ * @return the amount of health hero has after attack
+ * @see <a href="http://www.link_to_jira/HERO-402">HERO-402</a>
+ * @since 1.0
+ */
+public int successfullyAttacked(int incomingDamage) {
+    // do things
+    return 0;
+}
+```
+JavaDoc은 html로 이루어져 있기 때문에 html 문법도 사용 가능하다.   
+위의 @param은 함수 인자에 대한 설명이다.   
+그 외에도 @return은 결과 값이 무엇인지, @see 는 참고할 것은 무엇인지, @since는 버전에 대해서 작성한 것이다.
+
+JavaDoc 문서가 만들어지게 되면 아래와 같은 모습을 띤다.   
+![image](https://user-images.githubusercontent.com/83587720/163568657-03bacae4-6fde-47bb-b192-7e7abce04bc3.png)
+
+#### JavaDoc의 장점: IDE Reader Mode   
+   IDE의 Reader Mode라는 것을 사용하게 되면, slash와 asterisk가 사라지고 설명만 남게 되어 설명에 대한 가독성이 좋아진다. 
