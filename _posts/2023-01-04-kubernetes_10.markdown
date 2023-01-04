@@ -1,0 +1,56 @@
+---
+layout: post
+title: "Kubernetes_10"
+date: 2023-01-04
+last_modified_at: 2023-01-04
+categories: [Kubernetes]
+tags: [Kubernetes]
+---
+
+# Kubernetes deployment
+
+프로덕션 환경에 배포해야 하는 웹 서버가 있다고 가정해보자. 
+
+웹 서버의 인스턴스는 하나가 아니라 여러 개가 필요할 것이다.
+
+Docker 레지스트리에서 애플리케이션 bills의 최신 버전을 사용할 수 있게 될 때 마다 Docker 인스턴스를 업그레이드해야 한다.
+그러나 인스턴스를 업그레이드 할 때 모든 인스턴스를 한 번에 업그레이드 할 수는 없다.
+유저가 회사의 애플리케이션에 접근하는 데에 영향을 미칠 수 있으므로, 
+개발자는 차례로 애플리케이션을 업그레이드 해야할 것이다. 
+이러한 업그레이드를 Rolling update라고 한다. 
+
+수행한 업그레이드 중 하나에서 예기치 않은 오류가 발생해 최근 변경 내용을 실행 취소하라는 메시지가 표시된다고 하자.
+개발자는 최근에 수행된 변경 사항을 롤백할 수 있다.
+
+기본 웹 서버 버전 업그레이드, 환경 설정 변경 및 리소스 할당 수정 등과 같이 환경을 여러 번 변경하고자 할 수도 있다. 
+명령이 실행된 직후에는 각각의 변경사항을 적용하지 않을 수 있다.
+대신에, 환경을 일시 중지하고 변경한다음 모든 변경 사항이 함께 롤아웃되도록 다시 시작하려고 할 수 있다.
+
+위의 모든 기능은 Kubernetes deployment로 사용할 수 있다.
+
+각각의 컨테이너는 pod로 캡슐화되어 있다.
+이러한 pod는 replication controller나 replica sets를 사용해 여러 개가 배포된다. 
+그리고 더 윗 레벨에는 쿠버네티스 객체인 deployment가 있다.
+
+deployment를 통해 롤링 업데이트, 변경 실행 취소 및 일시 중지를 사용해 기본 인스턴스를 원활하게 업그레이드하고 
+필요에 따라 변경을 resume할 수 있다.
+
+그렇다면 deployment는 어떻게 생성할 수 있을까?
+
+앞서 언급했던 구성 요소들과 마찬가지로 먼저 deployment 정의 파일을 생성한다.
+deployment 정의 파일은 '배포 할 종류'를 제외하고 Replica set 정의 파일과 유사하다.
+파일 내용을 살펴보면 아래와 같은 사양이 들어있다.
+- API 버전 (apps/v1)
+- Metadata (name, label)
+- Template (템플릿 내부에는 pod의 정의가 존재한다.)
+- Replicas
+- Selector
+
+파일이 준비되면 kube control 생성 명령을 실행하고 deployment 정의 파일을 지정한다.
+그 다음 cube control get deployment 명령을 실행해 새로 생성된 deployment를 확인한다.
+
+deployment는 자동으로 replica set을 만들기 때문에, 
+kube control get replicaset 명령을 실행하면 deployment 이름에 새 Replica set이 표시된다.
+
+지금까지 Replica set과 deployment 사이에는 deployment 라는 새로운 쿠버네티스 객체가 생성되었다는 점을 제외하고는 큰 차이가 없다. 
+
