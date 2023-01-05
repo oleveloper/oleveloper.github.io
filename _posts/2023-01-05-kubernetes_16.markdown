@@ -8,3 +8,14 @@ tags: [Kubernetes]
 ---
 
 # Kubectl Apply Command
+
+Kubectl Apply Command는 declarative management 접근의 일부이다. 
+
+apply 커맨드는 변경할 내용을 결정하기 전, 
+local configuration file, 쿠버네티스 live object definition와 마지막으로 적용된 환경 설정을 고려한다. 
+오브젝트에 대한 업데이트가 있는 경우, 위의 세 가지를 모두 비교하여 live object에 대해 어떤 변경사항을 적용할지 식별한다. 
+
+예를 들어, 로컬 파일에서 nginx 이미지가 1.19로 업데이트 되고, kubectl apply 명령을 실행하는 경우 
+이 값이 live configuration 값과 비교된다. 그리고 차이가 있다면 live configuration이 새 값으로 업데이트 된다.
+아무런 변경이 없다면 마지막으로 적용된 json 형식은 항상 latest로 업데이트 된다. 
+
