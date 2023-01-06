@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Kubernetes_18_Labels_and_Selectors"
+title: "Kubernetes_18 Labels and Selectors"
 date: 2023-01-06
 last_modified_at: 2023-01-06
 categories: [Kubernetes]
@@ -8,3 +8,126 @@ tags: [Kubernetes]
 ---
 
 # Labels & Selectors
+
+Labels와 Selector는 그룹화를 하는 표준 방법이다.    
+
+여러 종(種, species)의 집합이 있다고 가정하자.   
+유저는 class(강)-species(종), 가축-야생 등 다양한 기준에 따라 필터링 할 수 있기를 원한다.    
+그 분류가 어떻게 되든지 간에 그룹화 할 수 있도록 하는 것이 필요하다.   
+
+이를 할 수 있게끔 하는 가장 좋은 방법은 label을 사용하는 것이다.   
+레이블은 각 항목에 첨부된 속성이다.    
+사용자는 각각의 항목에 class, kind, color 등의 속성을 추가한다.   
+selector는 이러한 항목을 필터링 하는 데에 도움을 준다.   
+
+예를 들어 class를 Mammal(포유류)라고 한다면,   
+유저는 Mammal에 대한 리스트를 얻을 것이다.   
+우리는 어디든 selector의 label을 볼 수 있는데, 가령 YouTube 동영상에 있는 태그 키워드라거나   
+온라인 상점의 각 아이템에 추가된 레이블같은 것을 말한다.   
+
+그렇다면 쿠버네티스에서 레이블과 셀렉터는 어떻게 사용될까?   
+이전까지 pod, services, replica sets, deployment 등 다양한 유형의 쿠버네티스의 오브젝트에 대해서 설명했다.    
+쿠버네티스에서는 이 모든 것이 서로 다른 객체인데,   
+시간이 지남에 따라 클러스터에 있는 객체들이 수백 또는 수천개로 늘어날 것이다.   
+그 때 이 객체들을 필터링을 할 수 있는 방법이 필요하다.    
+
+필터링을 하면 -타입에 따라 오브젝트를 그룹화 한 것과 같은- 다른 카테고리별로,    
+또는 애플리케이션 별로, 아니면 기능 별로 오브젝트들을 필터링해서 볼 수 있다.   
+어떤 것이든 label과 selector를 이용해 오브젝트를 그룹화 하고 select 할 수 있다.   
+
+그렇다면 쿠버네티스에서 레이블을 어떻게 지정할 수 있을까?   
+pod 정의 파일의 metadata에서 labels이라는 섹션을 만든다.   
+그 아래에 key-value 형식으로 레이블을 추가한다. (app, function 부분)   
+원하는 만큼 레이블을 추가할 수 있다.    
+```yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: simple-webapp
+  labels:
+    app: App1
+    function: Front-end
+
+spec:
+  containers:
+  - name: simple-webapp
+    image: simple-webapp
+    ports:
+      - containerPort: 8080
+```
+
+pod가 생성되면 kubectl get pods 명령을 통해 레이블이 있는 pod를 선택할 수 있다.    
+```
+kubectl get pods --selector app=App1
+```
+
+쿠버네티스 오브젝트는 다른 오브젝트를 함께 연결하기 위해 내부적으로 레이블과 셀렉터를 사용한다.    
+예를 들어, 서로 다른 세 개의 pod로 구성된 replica sets를 생성하려면    
+먼저 pod definition에 레이블을 지정하고 pod를 그룹화하기 위해 설정된 replica set에서 셀렉터를 사용한다.    
+아래 replicate set 정의 파일에서 두 곳에 정의된 레이블을 볼 수 있다.   
+```yml
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: simple-webapp
+  labels:
+    app: App1
+    function: Front-end
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: App1
+    template:
+      metadata:
+        labels:
+          app: App1
+          function: Front-end
+      spec:
+        containers:
+        - name: simple-webapp
+          image: simple-webapp
+```
+template 섹션 하위에 정의된 레이블은 pod에 구성된 레이블이다.   
+그리고 상단에 보이는 labels 부분은 replica set 자체의 레이블임을 주의한다.   
+
+replica set의 레이블은 replica set을 검색하기 위해 다른 오브젝트를 구성하는 경우에 사용된다.    
+replica set을 pod에 연결하기 위해 pod에 정의된 레이블과 일치하도록 replica set spec 아래의 selector 필드를 작성한다.    
+이 경우에는 레이블 하나만 올바르게 일치하면 된다.   
+그러나 동일한 레이블과 다른 기능을 가진 pod가 있을 수 있다고 생각되는 경우,   
+두 레이블을 모두 지정해 replica set에서 올바른 part를 검색할 수도 있다.    
+
+생성 시 레이블이 일치(selector의 matchLabels의 label과 template의 lables의 label)하면 replica set이 성공적으로 생성된다.   
+서비스와 같은 다른 오브젝트에 대해서도 동일하게 동작한다.   
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  selector:
+    app: App1
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 9376
+```
+(위) service-definition.yaml   
+
+마지막으로 annotations을 살펴보자.   
+```
+ ...
+ metadata: 
+   name: simple-webapp
+   labels:
+     app: App1
+     function: Front-end
+   annotations:
+     buildversion: 1.34
+ spec:
+   replicas: 3
+ ...
+```
+annotation은 정보 제공의 목적으로 다른 세부 정보를 기록하는 데에 사용된다.   
+예를 들면 이름, 버전, 빌드 정보, 연락처 정보, 전화번호, 이메일, ID 등   
+일종의 통합 목적으로 사용될 수 있다.   
