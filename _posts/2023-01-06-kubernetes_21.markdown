@@ -8,3 +8,106 @@ tags: [Kubernetes]
 ---
 
 # Node Affinity
+
+node selector는 pod가 특정 노드에서 호스팅되는지 확인하는 것이 주된 목적이었다.    
+그러나 node selector로는 advanced expression(NOT Small이나 Large OR Medium? 과 같은)을 사용할 수 없다.   
+Node Affinity는 그러한 고급 기능을 제공하여 특정 노드에서의 pod 배치를 제한한다.   
+
+```yml
+apiVersion:
+kind:
+
+metadata:
+  name: myapp-pod
+spec:
+  containers:
+    - name: data-processor
+      image: data-processor
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: size
+            operator: In
+            values:
+            - Large
+```
+
+spec 하위에 affinity가 있고, 그 아래에 nodeAffinity가 있다.   
+그리고 그 하위에 문장처럼 보이는 requiredDuringSchedulingIgnoredDuringExecution 가 있다.      
+그 다음에는 nodeSelectorTerms가 있고, 여기에서 key-value pair를 지정한다.   
+key-value pair는 key, operator, values가 있는 곳을 말한다.   
+
+In 연산자는 이 곳에 지정된 목록에 있는 레이블을 가지고 있는 노드에 pod가 배치됨을 의미한다.    
+이 경우에는 Large 뿐이다.   
+
+operator 부분에 NotIn을 사용해 크기가 작지 않은 노드에 배치할 수 있다.    
+크기가 작지 않은 노드와 node affinity가 일치하는 경우 아래와 같이 나타낼 수 있다.   
+```yml
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: size
+            operator: NotIn
+            values:
+            - Small
+```
+
+Exist operator는 레이블 사이즈가 node에 존재하는지 단순히 확인만 한다.   
+때문에 value section이 필요하지 않다. 값을 비교하지 않기 때문이다.    
+```yml
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: size
+            operator: Exists
+```
+
+pod가 생성되면 이러한 node affinity를 고려하여 올바른 노드에 배치된다.    
+그러나 node affinity가 노드와 일치하지 않으면 어떻게 될까?   
+위의 예제로 치자면, size라는 label이 없으면 어떻게 될까?   
+누군가 나중에 노드의 레이블을 변경하면 어떻게 될까? pod가 노드에 계속 남아있게 될까?   
+
+이 모든 것은 위 property의 nodeAffinity 섹션에서 봤던 긴 문장으로 대답할 수 있다.   
+이것은 node affinity type이다.   
+node affinity type은 node affinity와 관련된 스케줄러와 pod 라이프 사이클 stage의 동작을 정의한다.    
+
+현재는 두 가지 유형의 node affinity를 사용할 수 있다.   
+- requiredDuringSchedulingIgnoredDuringExecution   
+- prefferedDuringSchedulingIgnoredDuringExecution   
+
+그리고 아래의 affinity가 추가 예정되어있다.   
+- requiredDuringSchedulingRequiredDuringExecution   
+
+node affinity를 고려했을 때, pod의 라이프 사이클에는 스케줄링중과 실행중이라는 두 가지 상태가 있다.    
+스케줄링 중은 pod가 존재하지 않는 상태와 처음 생성이 될 때를 의미한다.    
+pod가 처음 생성될 때 node affinity가 고려되어 올바른 노드에 배치된다는 것은 의심의 여지가 없다.    
+
+이제 노드가 일치하는 레이블을 사용할 수 없을 때에는 어떻게 될까?   
+예를 들자면 노드에 Large라는 레이블 지정하는 것을 잊었을 때이다.   
+
+'required'DuringSchedulingIgnoredDuringExecution 을 선택한다면,   
+스케줄러는 node affinity 규칙을 사용해 pod가 노드에 배치되도록 지시한다.    
+pod를 찾을 수 없거나 일치하는 노드가 존재하지 않는 경우에는 pod는 스케줄링 되지 않는다.    
+이 타입은 pod의 스케줄링이 중요할 때 사용한다.    
+
+하지만 pod 스케줄링이 덜 중요하다고 가정해보자.   
+이 때에는 'preffered'DuringSchedulingIgnoredDuringExecution 를 설정한다.   
+일치하는 노드를 찾을 수 없을 경우, 스케줄러는 node affinity 규칙을 무시한다.   
+그리고 사용 가능한 노드에 pod를 배치한다.    
+
+이번에는 관리자가 레이블을 제거했다고 가정해보자.   
+requiredDuringScheduling'Ignored'DuringExecution   
+prefferedDuringScheduling'Ignored'DuringExecution   
+이 때에는 node affinity가 둘 다 Ignored로 설정되어 있기 때문에 pod가 계속 실행됨을 의미한다.   
+일단 스케줄링 되면 영향을 미치지 않는다는 것이다.   
+
+마지막으로 추가 예정인 requiredDuringSchedulingRequiredDuringExecution는   
+실행 단계에서만 차이가 있다. 실행 중 'required'라는 새로운 옵션이 도입된다.   
+이 경우에는 affinity 규칙을 충족하지 않는 노드에서 실행중인 모든 pod를 제거한다.   
+앞서 언급한 예시(Large 레이블이 노드에서 제거된 경우)에서 Large 노드에서 실행중인 pod가 종료된다.   
