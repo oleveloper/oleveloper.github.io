@@ -9,29 +9,29 @@ tags: [Kubernetes]
 
 # Node Affinity vs Taints and Tolerations
 
-아래와 같이 세 가지 색상의 노드와 세 가지 pod가 있다고 가정하자.
-궁극적인 목표는 같은 색 노드에 pod를 배치하는 것이다.
+아래와 같이 세 가지 색상의 노드와 세 가지 pod가 있다고 가정하자.   
+궁극적인 목표는 같은 색 노드에 pod를 배치하는 것이다.   
 
 <img width="400" alt="스크린샷 2023-01-08 오후 3 34 35" src="https://user-images.githubusercontent.com/83587720/211183710-c9286dea-d708-4ad9-a60a-6fd9bd2e26d1.png">
 
-Kubernetes cluster를 다른 팀과 공유하고 있다고 가정했기 때문에 클러스터에 Other pod와 Other node가 있다. 
-노드에 다른 pod가 배치되는 것을 원하지 않으며, pod가 노드에 배치되어서도 안 된다.
+Kubernetes cluster를 다른 팀과 공유하고 있다고 가정했기 때문에 클러스터에 Other pod와 Other node가 있다.    
+노드에 다른 pod가 배치되는 것을 원하지 않으며, pod가 노드에 배치되어서도 안 된다.   
 
 ## Taint and Tolerations를 사용하는 방법
-노드마다 Taint를 적용한 후 pod에 toleration을 설정한다.
-pod가 생성되면 node는 toleration을 가진 pod만 수락한다. 
-그러나 taint 와 toleration는 pod가 이런 노드만 선호한다는 것을 보장하지는 않는다.
-때문에 어떠한 pod는 taint나 toleration set이 없는 node에 할당될 수 있다.
+노드마다 Taint를 적용한 후 pod에 toleration을 설정한다.   
+pod가 생성되면 node는 toleration을 가진 pod만 수락한다.    
+그러나 taint 와 toleration는 pod가 이런 노드만 선호한다는 것을 보장하지는 않는다.   
+때문에 어떠한 pod는 taint나 toleration set이 없는 node에 할당될 수 있다.   
 
 ## Node Affinity를 사용하는 방법
-node affinity를 사용해 이 문제를 해결해보자.
-먼저 노드에 레이블을 지정한다.
-그런 다음 pod에 node selector를 설정한다. 
-그러면 pod는 올바른 노드에 할당된다.
-그러나 이 방법은 다른 pod가 레이블이 지정된 노드에 배치되지 않는다는 것을 보장하지는 않는다. 
-pod 중 하나가 다른 색의 노드 위에 할당될 수 있는 것이다. 
+node affinity를 사용해 이 문제를 해결해보자.   
+먼저 노드에 레이블을 지정한다.   
+그런 다음 pod에 node selector를 설정한다.    
+그러면 pod는 올바른 노드에 할당된다.   
+그러나 이 방법은 다른 pod가 레이블이 지정된 노드에 배치되지 않는다는 것을 보장하지는 않는다.    
+pod 중 하나가 다른 색의 노드 위에 할당될 수 있는 것이다.    
 
 ## Node Affinity + Taints and Tolerations을 사용한 방법
-위의 방법들을 모두 사용할 수 있다. 
-먼저, 다른 pod가 노드에 배치되는 것을 방지하기 위해 taint와 toleration을 사용한다.
-그 다음 node affinity를 사용해 우리 pod가 다른 노드에 배치되는 것을 막는다. 
+위의 방법들을 모두 사용할 수 있다.    
+먼저, 다른 pod가 노드에 배치되는 것을 방지하기 위해 taint와 toleration을 사용한다.   
+그 다음 node affinity를 사용해 우리 pod가 다른 노드에 배치되는 것을 막는다.    
