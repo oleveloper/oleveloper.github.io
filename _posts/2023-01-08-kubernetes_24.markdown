@@ -8,21 +8,81 @@ tags: [Kubernetes]
 ---
 
 # DaemonSets
-지금까지 ReplicaSet과 Deployments의 도움으로 여러 개의 복제본 애플리케이션을 다양한 Worker node에서 사용할 수 있었다.
-데몬셋은 pod의 여러 인스턴스들을 배포하는 데에 도움이 된다는 점에서 레플리카셋과 같다. 
-그러나 클러스터의 각 노드에서 pod의 복사본 하나씩을 실행한다는 점에서 차이가 있다.
+지금까지 ReplicaSet과 Deployments의 도움으로 여러 개의 복제본 애플리케이션을 다양한 Worker node에서 사용할 수 있었다.   
+데몬셋은 pod의 여러 인스턴스들을 배포하는 데에 도움이 된다는 점에서 레플리카셋과 같다.    
+그러나 클러스터의 각 노드에서 pod의 복사본 하나씩을 실행한다는 점에서 차이가 있다.   
 
 <img width="500" alt="스크린샷 2023-01-08 오후 10 03 29" src="https://user-images.githubusercontent.com/83587720/211197476-4ad5aa51-ca4b-4af2-a6e7-e90b30047c93.png">
 
-클러스터에 새 노드가 추가될 때마다 pod의 복제본이 새 노드에 자동으로 추가된다. 
-그리고 노드가 제거되면 pod도 자동으로 없어진다. 
-데몬셋은 pod의 클러스터의 모든 노드에 복사본 한 개를 보장한다. 
+클러스터에 새 노드가 추가될 때마다 pod의 복제본이 새 노드에 자동으로 추가된다.    
+그리고 노드가 제거되면 pod도 자동으로 없어진다.    
+데몬셋은 pod의 클러스터의 모든 노드에 복사본 한 개를 보장한다.    
 
-그렇다면 데몬셋을 실제로는 어떻게 사용할까?
-클러스터 안의 각각의 노드에 모니터링 에이전트 또는 log collector를 배포한다면 클러스터에 대해 더 잘 모니터링 할 수 있다.
-데몬셋은 클러스터의 모든 노드에 pod 형태로 모니터링 에이전트를 배포할 수 있으므로 적합하다.
+그렇다면 데몬셋을 실제로는 어떻게 사용할까?   
+클러스터 안의 각각의 노드에 모니터링 에이전트 또는 log collector를 배포한다면 클러스터에 대해 더 잘 모니터링 할 수 있다.   
+데몬셋은 클러스터의 모든 노드에 pod 형태로 모니터링 에이전트를 배포할 수 있으므로 적합하다.   
 
-사용자들은 클러스터에 변경 사항이 있는 경우 노드에 모니터링 에이전트를 추가하거나 제거하는 방법에 대해 걱정할 필요가 없다. 
-데몬셋이 이것을 처리할 것이다.
+사용자들은 클러스터에 변경 사항이 있는 경우 노드에 모니터링 에이전트를 추가하거나 제거하는 방법에 대해 걱정할 필요가 없다.    
+데몬셋이 이것을 처리할 것이다.   
 
+앞서 쿠버네티스 아키텍처에 대해 논의할 때, 클러스터의 모든 노드에 필요한 Worker node의 구성 요소 중 하나가 kube-proxy라고 했었다.    
+이것은 데몬셋의 좋은 용례 중 하나이다.   
+kube-proxy는 클러스터의 데몬셋으로 배포할 수 있는 컴포넌트이다.   
+또 다른 사용 예는 네트워킹이다.   
+Weave-net과 같은 네트워킹 솔루션은 클러스터의 각 노드에서 배포된 에이전트가 필요하다.    
 
+데몬셋 생성은 레플리카셋 생성 프로세스와 비슷하다.   
+```yml
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: monitoring-daemon
+spec:
+  selector:
+    matchLabels:
+      app: monitoring-agent
+  template:
+    metadata:
+      labels:
+        app: monitoring-agent
+    spec:
+      containers:
+      - name: monitoring-agent
+        image: monitoring-agent
+```
+템플릿 섹션 아래 중첩된 pod specification 그리고 데몬셋을 pod에 연결하는 셀렉터가 있다.   
+데몬셋 정의 파일은 비슷한 구조를 가지고 있다. (레플리카 셋 정의 파일과)   
+API 버전, kind, metadata, spec부터 시작해보자.   
+API 버전은 우리가 원하는 앱,    
+kind는 ReplicaSet 대신 DaemonSet이다.   
+이름은 모니터링 데몬으로 설정한다.   
+spec에 따라 selector와 pod specification template이 있다.   
+kind가 DaemonSet인 것을 제외하고는 레플리카셋 정의와 거의 똑같다.    
+셀렉터의 레이블을 확인해보면, pod template의 항목과 일치한다.   
+
+준비가 되면 아래의 kubectl 커맨드를 통해 데몬셋을 생성한다.
+```bash
+kubectl create -f daemon-set-definition.yaml
+```
+
+아래의 명령을 통해 DaemonSet command명령을 가져와보자.
+```bash
+kubectl get daemonsets
+```
+
+더 자세하게 보려면 Describe DaemonSet 커맨드를 실행한다.
+```bash
+kubectl describe daemonsets monitoring-daemon
+```
+
+데몬셋은 어떻게 작동할까?   
+각 노드에 pod를 어떻게 스케줄링하며, 각 노드에 pod가 있는지 어떻게 확인할까?   
+pod를 스케줄링 하라는 요청을 받은 경우 클러스터의 각 노드에서는 어떻게 할까?   
+
+스케줄러를 우회하고 pod를 노드에 직접 배치하기 위해 pod에서 노드 이름 프로퍼티를 설정할 수 있다.   
+이것이 하나의 접근법이다.   
+각 pod에서 pod가 생성되기 전에 해당 사양의 노드 이름 속성을 설정한다.   
+그리고 pod가 생성되면 자동으로 노드에 안착한다.   
+
+이 방법은 쿠버네티스 버전 1.12 이전까지의 이야기이다.   
+버전 1.12부터 데몬셋은 기본 스케줄러와 node affinity 개념을 사용한다.   
