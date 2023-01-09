@@ -8,3 +8,113 @@ tags: [Kubernetes]
 ---
 
 # Static Pods
+<img width="1063" alt="스크린샷 2023-01-09 오후 10 52 59" src="https://user-images.githubusercontent.com/83587720/211323837-df49eb1f-748b-4c34-9a14-1fdef4ce2945.png">
+
+kubelet은 kube API 서버에 의존해 노드에 어떤 부분을 로드할 지에 대한 지침을 제공하는데,
+이는 kube 스케줄러가 결정한 etcd 데이터 저장소에 저장된 것을 기반으로 한다.
+
+kube API 서버와 kube 스케줄러가 없거나 etcd 클러스터가 없으면 어떻게 될까?
+만약 master가 없다면?, 다른 노드가 없다면 어떨까?
+만약 클러스터가 아니라 바다에 혼자 떠있다면 어떨까?
+kubelet이 배 위에서 선장으로 할 수 있는 일이 있을까?
+독립적인 노드로 작동할 수 있을까?
+그렇다면 해당 pod를 만드는 데 필요한 지침은 누가 제공할까?
+
+kubelet은 노드를 독립적으로 관리할 수 있다.
+배의 호스트에는 kubelet이 설치되어 있고, 물론 컨테이너를 운영할 Docker도 있다. 
+쿠버네티스 클러스터가 없으면, kube API 서버도 없다.
+kubelet이 할 수 있는 한 가지는, pod를 만드는 것이다.
+지금까지 pod를 만들려면 pod 정의 파일에 있는 pod의 세부 정보가 필요하다는 것을 공부했다.
+하지만 어떻게 kube API 서버 없이 pod 정의 파일을 kubelet에 제공할 수 있을까?
+
+<img width="508" alt="스크린샷 2023-01-09 오후 10 56 07" src="https://user-images.githubusercontent.com/83587720/211324486-cab3d1e1-da8f-4f73-9ef3-15aae0e239a9.png">
+pod에 대한 정보를 저장하도록 지정된 서버의 디렉터리에서, pod 정의 파일을 읽도록 kubelet을 구성할 수 있다.
+pod 정의 파일을 지정된 디렉터리에 배치하도록 한다.
+kubelet은 주기적으로 이 지정된 디렉터리에서 파일을 확인하고, 읽고, 호스트에 pod를 만든다.
+이것은 pod를 만들 뿐만 아니라, pod가 살아있음을 보장할 수 있다. 
+
+애플리케이션이 충돌하면 kubelet이 재시작을 시도한다.
+이 디렉터리 내의 파일을 변경하면 변경 사항이 적용될 pod가 다시 생성된다.
+이 디렉터리에서 파일을 제거하면 pod가 자동으로 삭제된다.
+따라서 API 서버나 나머지 쿠버네티스 클러스터 구성 요소의 개입 없이 kubelet에 의해 자체적으로 생성되는 이러한 pod를 static pod라고 한다.
+이 방법으로만 pod를 만들 수 있다.
+
+정의 파일을 지정된 디렉터리에 배치해 ReplicaSets, Deployments 또는 Service를 만들 수는 없다.
+이것들은 모두 복제 또는 디플로이먼트 컨트롤러 등과 같은 다른 클러스터 구성 요소가 필요한 쿠버네티스 아키텍처이다.
+kubelet은 pod 수준에서 작동하고 pod만 이해할 수 있다.
+이것이 static pod를 위와 같은 방식으로만 만들 수 있는 이유이다.
+
+그렇다면 지정된 폴더는 무엇이고 어떻게 구성할까?
+호스트에 있는 임의의 디렉터리일 수 있으며, 해당 디렉터리의 위치는 서비스를 실행하는 동안 옵션으로서 kubelet에 전달된다.
+```
+ExecStart=/usr/local/bin/kubelet \\
+  --container-runtime=remote \\ --container-runtime-endpoint=unix:///var/run/containerd/containerd.sock \\ 
+  --pod-manifest-path=/etc/Kubernetes/manifests \\ 
+  --kubeconfig=/var/lib/kubelet/kubeconfig \\
+  --network-plugin=cni \\
+  --register-node=true \\
+  --v=2
+```
+이 옵션의 이름은 pod manifest path이며 이 옵션은 etcd 쿠버네티스 매니페스트 폴더로 설정된다.
+
+이를 구성하는 다른 방법도 있다.
+```
+ExecStart=/usr/local/bin/kubelet \\
+  --container-runtime=remote \\ --container-runtime-endpoint=unix:///var/run/containerd/containerd.sock \\
+  --config=kubeconfig.yaml \\
+  --kubeconfig=/var/lib/kubelet/kubeconfig \\
+  --network-plugin=cni \\
+  --register-node=true \\
+  --v=2
+```
+_kubelet.service_
+
+```
+staticPodPath: /etc/kubernetes/manifest
+```
+_kubeconfig.yaml_
+kubelet.service 파일에서 직접 옵션을 지정하는 대신 config 옵션을 사용해 다른 구성 파일에 pod를 제공하고 해당 파일에서 디렉터리 경로를 static pod 경로로 정의할 수 있다.
+
+kube admin 도구로 설정된 클러스터는 이 방법을 사용한다.
+기존 클러스터를 검사하는 경우, 디렉터리에 대한 경로를 식별하기 위해 kubelet의 이 옵션을 검사해야 한다.
+그러면 static pod 정의 파일을 저장 할 위치를 알 수 있다.
+클러스터를 설정하는 데 사용되는 방법에 관계 없이 이 옵션을 보고 구성해야 한다.
+
+먼저, kubelet 서비스 파일에서 option pod manifest path를 확인한다.
+만약 없다면, config option을 찾고 config file로 사용되는 파일을 식별한 다음 config file 내에서 static pod path 옵션을 찾는다. 
+static pod가 생성되면 docker ps 명령을 통해 볼 수 있다.
+
+그렇다면 지긤까지 해왔던 것처럼 kube control 명령은 왜 사용할 수 없는 것일까?
+아직 쿠버네티스 클러스터의 나머지 부분이 없기 때문이다.
+kube control 유틸리티는 kube API 서버와 함께 동작한다.
+현재 API 서버가 없기 때문에 kube control 유틸리티가 없어 docker 명령을 사용하는 것이다. 
+
+그렇다면 노드가 클러스터의 일부일 때, kubelet에게 pod 생성을 요청하라는 API 서버가 있을 때에는 어떻게 동작할까?
+API 서버가 존재하는 경우 kubelet은 두 종류의 pod를 동시에 만들 수 있을까?
+
+kubelet이 동작하는 방식은 여러 input들로부터 pod를 생성하는 요청을 받을 수 있다는 것이다. 
+첫번째는 static pods 폴더에서의 pod 정의 파일을 통한 것이다. 
+두번째는 etcd (?) API endpoint를 이용한 것이다. 그리고 이것이 kube API 서버가 kubelet에 입력을 제공하는 방법이다. 
+kubelet은 이 두 가지의 pod를 동시에 생성할 수 있다.
+
+이 경우 kubelet에 의해 생성된 static pod를 API 서버가 인식하고 있을까?
+그렇다.
+```
+kubectl get pods
+```
+위 명령을 실행하면, static pods가 다른 pod와 같이 목록에 나타날 것이다. 
+
+kubelet이 static pod를 생성할 때 클러스터의 일부인 경우 kube API 서버에 mirror object를 생성한다. 
+kube API 서버에서 볼 수 있는 것은 pod의 READ only mirror일 뿐이다.
+pod에 대한 세부적인 정보는 볼 수 있지만, 일반 pod처럼 수정하거나 삭제할 수는 없다.
+이는 node manifest folder에서 파일을 수정해야만 삭제할 수 있다.
+pod 이름에는 노드 이름이 자동으로 추가된다.
+
+왜 static pod를 사용하려고 하는걸까?
+static pod는 쿠버네티스의 control plane에 종속되지 않기 때문에, 이를 사용해 control plane 구성 요소 자체를 노드에 pod로 배포할 수 있다.
+
+먼저 모든 마스터 노드에 kubelet을 설치한 다음, etcd의 API 서버 컨트롤러 등 다양한 컨트롤 플레인 구성 요소의 docker 이미지를 사용하는 pod 정의 파일을 만든다.
+정의 파일을 지정된 매니페스트 폴더에 위치시키고, kubelet은 control plain 구성 요소 자체를 클러스터의 pod로 배포한다. 
+이렇게 하면 바이너리 구성 서비스를 다운로드하거나 서비스 중단을 걱정할 필요가 없다.
+static pod이기 때문에 이러한 서비스 중 하나라도 중단되면 kubelet에 의해 자동으로 다시 시작된다.
+
