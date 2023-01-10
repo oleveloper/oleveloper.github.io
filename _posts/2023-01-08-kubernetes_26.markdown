@@ -9,24 +9,24 @@ tags: [Kubernetes]
 
 # Multiple Schedulers
 
-pod를 노드 전체에 균등하게 배포하고 taints 및 tolerations, node affinity를 고려한 알고리즘이 있었다.
-그러나 이것들 중 어느 것도 유저의 필요를 충족시키지 못하면 어떻게 될까?
+pod를 노드 전체에 균등하게 배포하고 taints 및 tolerations, node affinity를 고려한 알고리즘이 있었다.   
+그러나 이것들 중 어느 것도 유저의 필요를 충족시키지 못하면 어떻게 될까?   
 
-노드에서 몇 가지 추가적인 사항을 확인한 후 컴포넌트를 배치해야 하는 특정한 애플리케이션이 있다고 가정해보자. 
-그래서 우리는 유저의 조건을 추가하고 체크할 수 있는 pod를 노드에 배치하기 위해 우리만의 스케줄링 알고리즘을 갖기로 결정했다. 
+노드에서 몇 가지 추가적인 사항을 확인한 후 컴포넌트를 배치해야 하는 특정한 애플리케이션이 있다고 가정해보자.    
+그래서 우리는 유저의 조건을 추가하고 체크할 수 있는 pod를 노드에 배치하기 위해 우리만의 스케줄링 알고리즘을 갖기로 결정했다.    
 
-쿠버네티스는 확장성이 뛰어나다. 
-우리는 쿠버네티스 클러스터에서 기본 스케줄러 또는 추가 스케줄러로 패키징하거나 디플로이하는 자체 쿠버네티스 스케줄러 프로그램을 작성할 수 있다.
-이런 식으로 다른 모든 애플리케이션들은 기본 스케줄러를 통해 동작할 수 있다.
+쿠버네티스는 확장성이 뛰어나다.    
+우리는 쿠버네티스 클러스터에서 기본 스케줄러 또는 추가 스케줄러로 패키징하거나 디플로이하는 자체 쿠버네티스 스케줄러 프로그램을 작성할 수 있다.   
+이런 식으로 다른 모든 애플리케이션들은 기본 스케줄러를 통해 동작할 수 있다.   
 
-그러나 일부 특정 애플리케이션은 사용자 지정 스케줄러를 사용할 수 있다. 
-따라서 쿠버네티스 클러스터는 한 번에 여러 스케줄러를 가질 수 있다. 
-pod 또는 deployment를 생성할 때 쿠버네티스에게 특정 스케줄러에 의해 pod가 스케줄링 되도록 지시할 수 있다.
+그러나 일부 특정 애플리케이션은 사용자 지정 스케줄러를 사용할 수 있다.    
+따라서 쿠버네티스 클러스터는 한 번에 여러 스케줄러를 가질 수 있다.    
+pod 또는 deployment를 생성할 때 쿠버네티스에게 특정 스케줄러에 의해 pod가 스케줄링 되도록 지시할 수 있다.   
 
-스케줄러가 여러 개일 경우 이름이 달라야 한다. 그래야 각각의 스케줄러를 식별할 수 있다.
-기본 스케줄러의 이름은 default-scheduler이다. 
-그리고 이 이름은 kube-scheduler configuration file에서 구성된다.
-default-scheduler는 이것이 필요하지 않다. 이름을 지정하지 않으면 default-scheduler가 된다.
+스케줄러가 여러 개일 경우 이름이 달라야 한다. 그래야 각각의 스케줄러를 식별할 수 있다.      
+기본 스케줄러의 이름은 default-scheduler이다.    
+그리고 이 이름은 kube-scheduler configuration file에서 구성된다.   
+default-scheduler는 이것이 필요하지 않다. 이름을 지정하지 않으면 default-scheduler가 된다.   
 ```yml
 apiVersion: kubescheduler.config.k8s.io/v1
 kind: KubeSchedulerConfiguration
@@ -39,12 +39,12 @@ profiles:
 ExecStart=/user/local/bin/kube-scheduler \\
   --config=/etc/kubernetes/config/kube-scheduler.yaml
 ```
-kube-scheduler 바이너리를 일련의 옵션을 사용하여 서비스로 실행한다.
-추가 스케줄러를 배포하려면, 동일한 kube-scheduler 바이너리를 사용하거나 직접 만든 것을 사용하자.
-이것은 스케줄러가 각기 다르게 작동해야 할 경우 수행해야 하는 작업들이다.
+kube-scheduler 바이너리를 일련의 옵션을 사용하여 서비스로 실행한다.   
+추가 스케줄러를 배포하려면, 동일한 kube-scheduler 바이너리를 사용하거나 직접 만든 것을 사용하자.   
+이것은 스케줄러가 각기 다르게 작동해야 할 경우 수행해야 하는 작업들이다.   
 
-이번에는 커스텀 configuration 파일을 configuration file로 지정해보자.
-각 스케줄러는 별도의 configuration file을 사용하고, 각 파일은 자체 스케줄러 이름을 갖는다.
+이번에는 커스텀 configuration 파일을 configuration file로 지정해보자.   
+각 스케줄러는 별도의 configuration file을 사용하고, 각 파일은 자체 스케줄러 이름을 갖는다.   
 ```yml
 ExecStart=/usr/local/bin/kube-scheduler \\
   --config=/etc/kubernetes/config/my-scheduler-config.yaml
@@ -54,9 +54,9 @@ ExecStart=/usr/local/bin/kube-scheduler \\
   --config=/etc/kubernetes/config/my-scheduler-2-config.yaml
 ```
 
-그리고 쿠버네티스 API에 인증 하기 위한 kubeconfig 파일과 같은 다른 옵션들이 전달되는데, 여기에서는 넘어가도록 한다.
+그리고 쿠버네티스 API에 인증 하기 위한 kubeconfig 파일과 같은 다른 옵션들이 전달되는데, 여기에서는 넘어가도록 한다.   
 
-이번에는 스케줄러를 pod로 배포하는 경우에는 어떻게 동작하는지 살펴보자.
+이번에는 스케줄러를 pod로 배포하는 경우에는 어떻게 동작하는지 살펴보자.   
 ```yml
 apiVersion: v1 kind: Pod metadata:
 name: kube-scheduler
@@ -67,23 +67,23 @@ containers: - command:
 - --kubeconfig=/etc/kubernetes/scheduler.conf - --leader-elect=true
 image: k8s.gcr.io/kube-scheduler-amd64:v1.11.3 name: kube-scheduler
 ```
-pod 정의 파일을 생성하고, kubeconfig 속성을 지정한다.
-이 속성은 쿠버네티스 API 서버에 연결하기 위한 인증 정보가 있는 스케줄러 conf 파일의 경로이다.
-그 다음 커스텀 kube-scheduler 구성 파일을 스케줄러에 대한 configuration options으로써 전달한다. 
-파일에는 스케줄러의 이름이 지정되어 있다.
-이것이 스케줄러가 이름을 채택하는 방법이다.
+pod 정의 파일을 생성하고, kubeconfig 속성을 지정한다.   
+이 속성은 쿠버네티스 API 서버에 연결하기 위한 인증 정보가 있는 스케줄러 conf 파일의 경로이다.   
+그 다음 커스텀 kube-scheduler 구성 파일을 스케줄러에 대한 configuration options으로써 전달한다.    
+파일에는 스케줄러의 이름이 지정되어 있다.   
+이것이 스케줄러가 이름을 채택하는 방법이다.   
 
-여기에서 살펴볼 또 다른 중요한 옵션이 있다. 바로 리더 선출 옵션이다.
-리더 선출 옵션은 여러 개의 마스터 노드에서 실행중인 스케줄러의 복제본이 여러 개 있을 경우 사용된다.
+여기에서 살펴볼 또 다른 중요한 옵션이 있다. 바로 리더 선출 옵션이다.   
+리더 선출 옵션은 여러 개의 마스터 노드에서 실행중인 스케줄러의 복제본이 여러 개 있을 경우 사용된다.   
 
-동일한 스케줄러의 복사본들이 서로 다른 노드에서 실행 중인 경우 한 번에 하나만 활성화 할 수 있으며
-여기서 리더 선출 옵션은 스케줄링 활동을 주도할 리더를 선택할 때 사용된다. 
+동일한 스케줄러의 복사본들이 서로 다른 노드에서 실행 중인 경우 한 번에 하나만 활성화 할 수 있으며   
+여기서 리더 선출 옵션은 스케줄링 활동을 주도할 리더를 선택할 때 사용된다.    
 
-마스터가 여러 개인 경우 추가적으로 매개변수를 전달하여 로그 오브젝트 이름을 설정할 수 있다.
-이는 새 사용자 지정 스케줄러를 기본 선출 프로세스와 구별하기 위한 것이다.
+마스터가 여러 개인 경우 추가적으로 매개변수를 전달하여 로그 오브젝트 이름을 설정할 수 있다.   
+이는 새 사용자 지정 스케줄러를 기본 선출 프로세스와 구별하기 위한 것이다.   
 
-이제 추가 스케줄러를 deployment로 스케줄링 하는 방법을 살펴보자.
-이를 위해 쿠버네티스 매뉴얼 페이지를 참고하자. 
+이제 추가 스케줄러를 deployment로 스케줄링 하는 방법을 살펴보자.   
+이를 위해 쿠버네티스 매뉴얼 페이지를 참고하자.    
 
 reference: https://kubernetes.io/ko/docs/tasks/extend-kubernetes/configure-multiple-schedulers/
 
