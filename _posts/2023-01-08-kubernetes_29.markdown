@@ -8,3 +8,42 @@ tags: [Kubernetes]
 ---
 
 # Managing Application Logs
+
+Docker 로그인부터 시작해보자.
+```
+docker run kodekloud/event-simulator
+```
+위 명령으로 event-simulator라는 Docker 컨테이너를 실행하였다.
+이 컨테이너는 웹 서버를 시뮬레이션 하는 컨테이너로, 무작위 이벤트를 생성하는 일을 한다. 
+애플리케이션의 stdout으로 이벤트를 스트리밍한다. 
+
+-d 옵션을 사용한 detached mode의 백그라운드에서 docker 컨테이너를 실행하면 로그가 표시되지 않는다.
+로그를 보고 싶다면 docker logs 명령(뒤에 container ID가 온다.)을 사용할 수 있다. 
+-f 옵션은 라이브 로그 트레일을 보는 데에 사용한다.
+
+이제 쿠버네티스로 돌아가서, pod 정의 파일을 사용해 동일한 Docker image로 pod를 생성한다.
+pod가 실행되면 pod 이름과 함께 kubectl logs 명령을 사용해 로그를 볼 수 있다.
+```
+kubectl logs -f event-simulator-pod
+```
+Docker 명령과 마찬가지로 -f 옵션을 사용해 라이브 로그 트레일을 볼 수 있다.
+
+쿠버네티스 pod는 여러 Docker container를 포함할 수 있다.
+이 경우 pod 정의 파일을 수정하고 이미지 프로세서라는 추가 컨테이너를 포함한다.
+```yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: event-simulator-pod
+spec:
+  containers:
+  - name: event-simulator
+    image: kodekloud/event-simulator
+  - name: image-processor
+    image: some-image-processor
+```
+그리고 kubectl logs명령을 실행해보자.
+pod 내에 여러 개의 컨테이너가 있는 경우에는 커맨드에서 컨테이너의 이름을 명시적으로 지정해야 한다.
+```
+kubectl logs -f event-simulator-pod event-simulator
+```
