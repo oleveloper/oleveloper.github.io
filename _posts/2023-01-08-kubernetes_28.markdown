@@ -8,3 +8,46 @@ tags: [Kubernetes]
 ---
 
 # Monitor Cluster Components
+
+쿠버네티스에서 리소스 소비를 어떻게 모니터링할까?   
+CPU와 같은 성능 메트릭 뿐만 아니라, 메모리, 네트워크 및 디스크 활용도, pod 수, pod 성능 지표와 같은 노드 수준의 메트릭을 알고 싶을 때에는 어떻게 해야할까?   
+이러한 메트릭을 모니터링 할 솔루션이 필요하다.    
+
+이를 가능하게 하는 현재 사용 가능한 오픈 소스 솔루션들이 있다.   
+Metrics Server, Prometheus, Elastic Stack, Datadog, Dynatrace와 같은 솔루션이 있다.   
+
+쿠버네티스는 클러스터당 하나의 메트릭 서버를 가질 수 있다.   
+메트릭 서버는 쿠버네티스 노드 및 pod에서 메트릭을 조회하고, 집계하고, 메모리에 저장한다.   
+메트릭 서버는 인메모리 모니터링 솔루션이기 때문에 디스크에 메트릭을 저장하지는 않는다.   
+따라서 이전의 성능 데이터를 볼 수 없다.   
+이를 위해서는 고급 모니터링 솔루션 중 하나를 사용해야 한다.    
+
+쿠버네티스는 instruction을 받기 위해 쿠버네티스 API 마스터 서버에서 각 노드에서 kubelet이라고 불리우는 에이전트를 실행하고, 노드에서 pod를 실행한다.    
+kubelet에는 cAdvisor 또는 컨테이너 어드바이저로 알려져 있는 sub component도 포함되어 있다.    
+cAdvisor는 pod 퍼포먼스 메트릭 조회와, 메트릭 서버에서 메트릭을 사용할 수 있도록 kubelet API를 통한 pod 노출을 책임진다.    
+
+로컬 클러스터에서 minikube를 사용하는 경우, 아래의 명령을 실행하고,   
+```shell
+minikube add
+```
+minikube add-on 메트릭 서버를 활성화한다.   
+
+다른 환경의 경우, GitHub 저장소에서 메트릭 서버 배포 파일을 복제해서 필요한 컴포넌트를 디플로이한다.   
+```shell
+git clone https://github.com/kubernetes-incubator/metrics-server.git
+```
+```shell
+kubectl create -f deploy/1.8+/
+```
+이 명령어는 클러스터의 노드에서 메트릭 서버를 활성화시키기 위해 pod, 서비스 그리고 role을 디플로이한다.   
+일단 디플로이되면, 메트릭 서버는 데이터를 수집하고 처리하기 위해 약간의 시간을 가진다.   
+처리가 완료되면 클러스터의 아래의 명령을 통해 성능을 볼 수 있다.   
+```
+kubectl top node
+```
+이것은 CPU 및 각 노드의 메모리 소비를 볼 수 있다.   
+
+아래의 명령을 통해서는 pod의 성능 메트릭을 볼 수 있다.    
+```
+kubectl top pod
+```
