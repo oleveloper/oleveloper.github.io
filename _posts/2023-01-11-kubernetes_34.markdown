@@ -1,0 +1,10 @@
+---
+layout: post
+title: "Kubernetes_34 Configuring ConfigMaps in Applications"
+date: 2023-01-11
+last_modified_at: 2023-01-11
+categories: [Kubernetes]
+tags: [Kubernetes]
+---
+
+# Configuring ConfigMaps in Applications
