@@ -1,0 +1,10 @@
+---
+layout: post
+title: "Kubernetes_33 Configure Environment Variables in Applications"
+date: 2023-01-11
+last_modified_at: 2023-01-11
+categories: [Kubernetes]
+tags: [Kubernetes]
+---
+
+# Configure Environment Variables in Applications
