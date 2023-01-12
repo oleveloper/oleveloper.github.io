@@ -1,0 +1,10 @@
+---
+layout: post
+title: "Kubernetes_36 Multi Container PODs"
+date: 2023-01-12
+last_modified_at: 2023-01-12
+categories: [Kubernetes]
+tags: [Kubernetes]
+---
+
+# Multi Container PODs
