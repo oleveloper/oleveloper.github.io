@@ -1,0 +1,10 @@
+---
+layout: post
+title: "Kubernetes_36 OS Upgrades"
+date: 2023-01-13
+last_modified_at: 2023-01-13
+categories: [Kubernetes]
+tags: [Kubernetes]
+---
+
+# OS Upgrades
