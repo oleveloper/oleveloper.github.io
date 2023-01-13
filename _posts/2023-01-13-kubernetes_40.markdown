@@ -1,0 +1,10 @@
+---
+layout: post
+title: "Kubernetes_40 Backup and Restore Methods"
+date: 2023-01-13
+last_modified_at: 2023-01-13
+categories: [Kubernetes]
+tags: [Kubernetes]
+---
+
+# Backup and Restore Methods
