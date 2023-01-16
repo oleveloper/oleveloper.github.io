@@ -10,7 +10,7 @@ tags: [Kubernetes]
 # TLS
 
 ## SSL과 TLS
-애플리케이션을 운영할 시 개인정보를 취급하거나 민감한 정보를 다룰 경우에는 보안 서버의 기반이 되는 SSL, TLS 프로토콜을 반드시 적용해야 한다.
+애플리케이션을 운영할 시 개인정보를 취급하거나 민감한 정보를 다룰 경우에는 보안 서버의 기반이 되는 SSL, TLS 프로토콜을 반드시 적용해야 한다. 이를 적용하여 서버와 유저 사이의 암호화를 보장한다. 
 ### SSL (Secure Socket Layer)
 Netscape에서 개발한 인터넷 통신 규약 프로토콜이다. 보안 소켓 계층이라는 뜻이며 정보 보안을 위해 개발되었다.
 
@@ -19,6 +19,20 @@ SSL 3.0을 기반으로 하여 IETF가 만든 프로토콜이다. SSL3.0 보다 
 
 ### 통신 과정
 ![image](https://user-images.githubusercontent.com/83587720/212646156-ab3095ab-e1ec-4514-ae93-d1d8f4488476.png)
+1. Client가 Server로 request, TCP에서 Connection을 맺은 후 Handshake 수행
+2. ClientHello (TLS version, Session ID, Password 등이 포함됨)
+3. Server에서 Client로 인증서와 공개키를 보내면 Client는 CA 인증서 키인지 확인함
+4. ServerHello (TLS Version, Session ID, Password 등이 포함됨)
+5. Server가 Client로 Certificate message 전송. 인증서는 CA인증서이다. 전송 완료 후 ServerHelloDone
+6. Client가 Server로부터 받은 인증서 검증. 
+7. Client는 pre-master secret 생성한 후 Server가 보낸 인증서에 포함된 공개키를 사용해 암호화. 
+8. 암호화된 pre-master secret을 ClientKeyExchange 메시지에 포함시켜 Server로 전송.
+9. Server는 Client Session Key를 얻기 위해 자신에게 있는 개인키를 통해 복호화함. 
+10. Client로부터 받은 cipherspec에서 Server가 허용하는 cipherspec을 Client에 전달.
+11. Server는 전송받은 정보를 복호화하여 pre-master secret을 알아낸 후 이를 이용해 master secret 생성.
+12. master secret에서 session key 생성하고, 이제부터 key를 통해 Server-Client 통신 암호화.
+13. 서로에게 ChangeCipherSpec 메시지를 보내 앞으로의 통신이 Session key를 통해 암호화 될 것임을 알림
+14. Finished message 전송, Handshake 
 
 ## 쿠버네티스 인증서 적용
 1. Kubernetes 인증서 생성
