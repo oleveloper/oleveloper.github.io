@@ -8,3 +8,30 @@ tags: [Kubernetes]
 ---
 
 # TLS
+
+## SSL과 TLS
+애플리케이션을 운영할 시 개인정보를 취급하거나 민감한 정보를 다룰 경우에는 보안 서버의 기반이 되는 SSL, TLS 프로토콜을 반드시 적용해야 한다.
+### SSL (Secure Socket Layer)
+Netscape에서 개발한 인터넷 통신 규약 프로토콜이다. 보안 소켓 계층이라는 뜻이며 정보 보안을 위해 개발되었다.
+
+### TLS (Transport Layer Security)
+SSL 3.0을 기반으로 하여 IETF가 만든 프로토콜이다. SSL3.0 보다 안전하고, 정확한 프로토콜이다.
+
+### 통신 과정
+![image](https://user-images.githubusercontent.com/83587720/212645074-2b613acf-7f6f-4a54-9b5b-d62e9413a185.png)
+
+## 쿠버네티스 인증서 적용
+1. Kubernetes 인증서 생성
+```sh
+openssl req -x509 -nodes -days ${EXPIRED_DATE} -newkey rsa:2048 -keyout ${KEY_NAME}.key -out ${KEY_NAME}.crt
+```
+2. Secret 생성
+```sh
+kubectl create secret tls ${SECRET_NAME} --key ${KEY_NAME}.key --cert ${KEY_NAME}.crt
+```
+3. TLS 적용
+spec > tls의 하위 필드로 secretName 필드에 시크릿 이름을 지정한다.
+
+reference: 
+https://kubernetes.io/ko/docs/tasks/tls/managing-tls-in-a-cluster/
+https://hpbn.co/transport-layer-security-tls/
