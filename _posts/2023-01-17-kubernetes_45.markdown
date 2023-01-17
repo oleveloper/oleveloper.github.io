@@ -8,3 +8,38 @@ tags: [Kubernetes]
 ---
 
 # Certificates API
+
+key생성
+```
+openssl genrsa -out test.key 2048
+```
+csr생성
+```
+openssl req -new -key test.key -subj "/CN=test" -out test.csr
+```
+csr 암호화
+```
+cat test.csr
+cat test.csr | base64
+```
+csr 복호화
+```
+echo "LS0..Q0=" | base64 --decode
+```
+certificate 승인
+```
+kubectl certificate approve test-csr
+```
+csr 그룹확인
+```
+kubectl get csr test-csr -o yaml
+```
+
+config 명령어
+```
+kubectl config view
+kubectl config view --kubeconfig=my-custom-config
+kubectl config use-context prod-user@production
+kubectl config --kubeconfig= use-context  
+kubectl config --kubeconfig=/root/my-kube-config use-context research
+```
