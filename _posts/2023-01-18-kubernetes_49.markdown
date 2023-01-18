@@ -1,0 +1,10 @@
+---
+layout: post
+title: "Kubernetes_49 Authorization"
+date: 2023-01-18
+last_modified_at: 2023-01-18
+categories: [Kubernetes]
+tags: [Kubernetes]
+---
+
+# Authorization
