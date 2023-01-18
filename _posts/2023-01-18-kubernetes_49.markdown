@@ -10,17 +10,17 @@ tags: [Kubernetes]
 # Authorization
 인가. 유저가 무엇을 할 수 있는 지를 규정한다.
 
-- Node
-    -- Node Authorizer에 의해 권한을 결정한다.
-    -- name, node group에 따라 권한이 결정된다.
-- ABAC
-    -- Attribute-Based Access Control
-    -- 사용자, 리소스 속성, 환경 등에 따라 권한을 결정한다.
-- RBAC
-    -- Role-based Access Control
-    -- 역할에 따라 권한을 부여한다.
-- Webhook
-- AlwaysAllow (default) / AlwasyDeny
+- Node   
+    -- Node Authorizer에 의해 권한을 결정한다.   
+    -- name, node group에 따라 권한이 결정된다.   
+- ABAC   
+    -- Attribute-Based Access Control   
+    -- 사용자, 리소스 속성, 환경 등에 따라 권한을 결정한다.   
+- RBAC   
+    -- Role-based Access Control   
+    -- 역할에 따라 권한을 부여한다.   
+- Webhook   
+- AlwaysAllow (default) / AlwaysDeny   
 
 #### Role
 ```yaml
