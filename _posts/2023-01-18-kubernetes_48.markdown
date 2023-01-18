@@ -8,3 +8,30 @@ tags: [Kubernetes]
 ---
 
 # API Groups
+
+Pods, Services, Jobs과 같은 API Resources를 Grouping한 것이 API Groups이다.
+API Groups는 쿠버네티스 정의 파일(yaml)의 apiVersion 필드에 명시된다. 
+```yaml
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: replica-test
+spec: ...
+```
+위 apiVersion 필드의 apps가 API Group이다.
+
+Pod, Services와 같은 Core API에 해당하는 Resources는 Group을 작성하지 않아도 된다.
+Core API
+- Pod
+- Service
+- PV
+- PVC
+- Node
+- Namespace
+- Configmap
+- Endpoint
+
+아래의 명령어로 API Group을 확인할 수 있다.
+```
+kubectl api-resources -o wide
+```
