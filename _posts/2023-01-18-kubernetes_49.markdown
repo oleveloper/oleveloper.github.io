@@ -8,3 +8,61 @@ tags: [Kubernetes]
 ---
 
 # Authorization
+인가. 유저가 무엇을 할 수 있는 지를 규정한다.
+
+- Node
+    -- Node Authorizer에 의해 권한을 결정한다.
+    -- name, node group에 따라 권한이 결정된다.
+- ABAC
+    -- Attribute-Based Access Control
+    -- 사용자, 리소스 속성, 환경 등에 따라 권한을 결정한다.
+- RBAC
+    -- Role-based Access Control
+    -- 역할에 따라 권한을 부여한다.
+- Webhook
+- AlwaysAllow (default) / AlwasyDeny
+
+#### Role
+```yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: default
+  name: read-role
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+```
+
+#### Role Binding
+우선 아래와 같이 롤에 바인딩 할 유저를 만들어준다.
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: myuser
+  namespace: default
+```
+
+```yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: read-rolebinding
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: myuser
+  apiGroup: ""
+roleRef:
+  kind: Role
+  name: read-role
+  apiGroup: rbac.authorization.k8s.io
+```
+
+아래의 명령어를 사용하여 롤, 롤 바인딩을 확인할 수 있다.
+```
+kubectl get roles
+kubectl get rolebindings
+```
