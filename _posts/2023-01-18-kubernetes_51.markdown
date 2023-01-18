@@ -8,10 +8,12 @@ tags: [Kubernetes]
 ---
 
 # Cluster Roles and Role Bindings
-클러스터 롤은 롤과 유사하다. 
 
 #### Cluster Role
-```
+클러스터 롤은 롤과 유사하다.    
+차이점은 kind가 ClusterRoleBinding이라는 점과, 클러스터 관련 설정이기 때문에 metadata에 namespace가 없다.   
+클러스터롤은 전체 네임스페이스에 적용되기 때문에 별도 명시가 필요 없기 때문이다.    
+```yml
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -22,9 +24,22 @@ rules:
   verbs: ["get", "list"]
 ```
 
+클러스터롤은 aggrigationRule을 이용해 다른 클러스터롤들과 조합해서 사용할 수 있다.
+```yml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: admin-aggregation
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      kubernetes.io/bootstrapping: rbac-defaults
+rules: []
+```
+
 #### Cluster Role Binding
 클러스터 롤에 바인딩 할 유저를 만들어준다.
-```
+```yml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -32,7 +47,7 @@ metadata:
   namespace: default
 ```
 
-```
+```yml
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
