@@ -8,3 +8,48 @@ tags: [Kubernetes]
 ---
 
 # Role Based Access Controls
+
+#### Role
+```yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: default
+  name: read-role
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+```
+
+#### Role Binding
+우선 아래와 같이 롤에 바인딩 할 유저를 만들어준다.
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: myuser
+  namespace: default
+```
+
+```yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: read-rolebinding
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: myuser
+  apiGroup: ""
+roleRef:
+  kind: Role
+  name: read-role
+  apiGroup: rbac.authorization.k8s.io
+```
+
+아래의 명령어를 사용하여 롤, 롤 바인딩을 확인할 수 있다.
+```
+kubectl get roles
+kubectl get rolebindings
+```
