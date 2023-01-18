@@ -8,3 +8,141 @@ tags: [Kubernetes]
 ---
 
 # KubeConfig
+
+서버, 클라이언트 키, CA 등을 kubectl 명령어를 사용할 때마다 계속 반복하여 타이핑하는 것은 지루한 일이다.   
+그래서 이 정보를 kubeconfig라는 configuration file로 변환한다.   
+그 다음 파일을 kubeconfig option으로 지정한다.    
+```
+--server my-kube-playground:6443
+--client-key admin.key
+--client-certificate admin.crt
+--certificate-authority ca.crt
+```
+(위) config   
+```sh
+kubectl get pods
+  --kubeconfig config
+```
+
+기본적으로 kubectl tool은 config라는 파일을 찾는데, 이 파일은 사용자의 홈 디렉토리 아래에 있는 directory.kube 에 있다.   
+따라서 그 안의 kubeconfig 파일을 지우면 kubectl 명령에서 파일 경로를 명시적으로 지정할 필요는 없다.   
+이것이 바로 지금까지 kubectl 명령에 대해 옵션을 지정하지 않은 이유이다.   
+
+kubeconfig 파일은 특정한 형식이 있다.   
+이제 그 내용을 살펴보자.   
+Configuration 파일에는 세 개의 섹션이 있다.   
+
+<img width="714" alt="스크린샷 2023-01-18 오후 9 34 19" src="https://user-images.githubusercontent.com/83587720/213172670-0d59d5d1-0af7-48ca-befc-09eab460480e.png">
+위에 보이는 바와 같이 클러스터, 유저, 컨텍스트가 있다.   
+- 클러스터      
+    클러스터는 액세스 해야 할 다양한 쿠버네티스 클러스터이다.    
+    다른 테스트 환경이나 제품, 조직, Cloud provider 및 개발 환경 등에 대한 여러 개의 클러스터가 있다고 가정해보자.    
+- 유저   
+    클러스터에 액세스 할 수 있는 사용자 계정을 의미한다.   
+    관리자, dev 사용자, 제품 사용자 등을 의미한다.   
+    각 사용자들은 각각의 다른 클러스터에서 다른 권한들을 가질 수 있다.   
+- 컨텍스트   
+    컨텍스트는 특정 클러스터에 액세스 할 수 있는 사용자 계정을 정의한다.   
+    예를 들어 프로덕션에서 관리자 계정을 사용하여 프로덕션 클러스터에 액세스하는 admin이라는 컨텍스트를 생성할 수 있다.   
+    또는 Google에 설정한 클러스터에 dev user credential로 내가 만든 애플리케이션 배포를 테스트하기 위해 액세스 할 수 있다.    
+
+이 과정들을 사용해서 클러스터에서 새로운 유저를 만들거나 사용자 액세스 또는 권한 부여를 구성하는 것이 아니다.    
+기존 사용자를 기존 권한으로 사용하고 클러스터에 액세스 하는 데 사용할 유저를 정의하는 것 뿐이다.    
+이렇게 하면 실행하는 모든 kubectl 명령에서 사용자 인증서와 서버 주소를 지정할 필요가 없다.   
+
+그렇다면 이것이 예시에는 어떻게 들어맞을까?   
+
+Command의 서버 사양은 클러스터 섹션에 들어간다.    
+관리자의 키와 인증서는 사용자 섹션에 들어간다.   
+그다음 내 kube admin 사용자를 사용하여 MykubePlayground 클러스터에 액세스하도록 지정하는 컨텍스트를 만든다.   
+
+이제 실제 kubeconfig 파일을 살펴보자.   
+kubeconfig 파일은 YAML 형식이다.   
+API 버전이 v1로 설정되어 있다.   
+종류는 config이다.   
+그리고 앞에서 논의한 바와 같이 세 섹션으로 구성되어 있다: 하나는 클러스터용, 하나는 컨텍스트용, 하나는 사용자용이다.   
+
+각각은 배열 형식이다.   
+이렇게 하면 동일한 파일 내에 여러 클러스터, 사용자 또는 컨텍스트를 지정할 수 있다.   
+클러스터 아래에 Kube Playground 클러스터에 대한 새로운 항목을 추가한다.   
+그것을 MyKubePlayground라고 이름 짓고 서버 필드 아래에 서버 주소를 지정한다.   
+
+인증 기관의 인증서도 필요하다.   
+사용자 섹션에 항목을 추가하여 내 kube admin 사용자의 세부 정보를 지정할 수 있다.   
+이제 클러스터와 클러스터에 액세스할 사용자를 정의할 수 있도록 클라이언트 인증서 및 키 쌍의 위치를 제공한다.   
+
+다음으로 컨텍스트 섹션 아래에 항목을 만들어 두 항목을 함께 연결한다.   
+MyKubePlayground에서 컨텍스트의 이름을 my-kube-admin이라고 지을 것이다.   
+
+그런 다음 클러스터 및 사용자에 사용한 동일한 이름을 지정한다.   
+동일한 절차에 따라 매일 액세스하는 모든 클러스터, 액세스에 사용하는 사용자 자격 증명 및 컨텍스트를 추가한다.   
+
+파일이 준비되면 다른 Kubernetes Object에 대해 일반적으로 하는 것처럼 Object를 만들 필요가 없다.   
+파일은 그대로 유지되고 kubectl 명령으로 읽히며 필요한 값이 사용된다.   
+
+kubectl 어떤 맥락에서 선택해야 하는지 어떻게 알 수 있을까?   
+우리는 여기서 세 가지 맥락을 정의했다.   
+
+필드의 현재 컨텍스트를 kubeconfig 파일에 추가함으로써, 사용하는 기본 컨텍스트를 지정하고 사용할 컨텍스트의 이름을 지정할 수 있다.   
+```
+apiVersion: v1
+kind: Config
+current-context: dev-user@google
+```
+위 예제의 경우 kubectl은 항상 Google의 컨텍스트 dev 및 dev의 Credential을 사용하여 Google 클러스터에 액세스한다.   
+
+kubeconfig 파일을 보고 수정하기 위해 kubectl 내에서 사용할 수 있는 명령줄 옵션이 있다.   
+사용 중인 현재 파일을 보려면 kubectl config view 명령을 실행해보자.   
+클러스터의 컨텍스트 및 사용자와 설정된 현재 컨텍스트가 나열된다.   
+
+앞에서 언급한 것처럼 사용할 kubeconfig 파일을 지정하지 않으면 사용자의 홈 디렉토리에 있는 .kube 폴더에 있는 기본 파일을 사용하게 된다.   
+
+또 아래와 같이 명령줄에서 kubeconfig 옵션을 전달하여 kubeconfig 파일을 지정할 수도 있다.   
+```
+kubectl config view --kubeconfig=my-custom-config
+```
+
+사용자 지정 구성을 홈 디렉토리로 이동하면 기본 구성 파일이 되는 방법을 쓸 수도 있다.   
+
+현재 컨텍스트는 어떻게 업데이트할 수 있을까?   
+지금까지는 my-kube-admin을 MyKubePlayground에 접속하기 위해 사용했다.   
+프로덕션 클러스터에 액세스하기 위해 prod 사용자를 사용하도록 컨텍스트를 어떻게 변경할 수 있을까?   
+
+kubectl config use context 명령을 실행하여 현재 컨텍스트를 프로덕션 컨텍스트에서 prod 사용자로 변경한다.   
+```
+kubectl config use-context prod-user@production
+```
+이는 파일의 현재 컨텍스트 필드에서 확인할 수 있다.   
+파일을 보면 kubectl config 명령으로 변경한 내용이 파일에 반영됨을 볼 수 있다.   
+kubectl config 명령을 조금 바꾸어 파일을 변경하거나 파일의 항목을 업데이트 또는 삭제할 수도 있다.   
+
+네임스페이스는 어떨까?   
+예를 들어 각 클러스터는 클러스터 내에서 여러 개의 네임스페이스로 구성될 수 있다.   
+특정 네임스페이스로 전환하도록 컨텍스트를 구성할 수 있을까?   
+그렇다.   
+kubeconfig 파일의 컨텍스트 섹션은 특정 네임스페이스를 지정할 수 있는 네임스페이스라는 추가 필드를 사용할 수 있다.   
+이렇게 하면 해당 컨텍스트로 전환하면 자동으로 특정 네임스페이스에 있게 된다.   
+
+마지막으로 인증서에 대한 것이다.   
+kubeconfig에서 언급한 인증서 파일의 경로는 다음과 같다.   
+```
+...
+cluster:
+  certificate-authority: /etc/kubernetes/pki/ca.crt
+...
+user:
+  client-certificate: admin.crt
+  client-key: admin.key
+```
+
+전체 경로를 이용하는 것이 좋지만 인증서 자격 증명을 지정하는 다른 방법도 있다.   
+예를 들어 CA에 대한 경로를 구성하는 방법을 살펴보도록 하자.   
+authority 필드와 파일 경로를 사용하는 대신 선택적으로 certificate-authority-data 필드를 사용하여 인증서 자체의 내용을 제공할 수 있지만 파일은 그대로 제공할 수 없다.   
+```
+...
+cluster:
+  certificate-authority-data: ${BASE64로 변환된 문자열}
+...
+```
+내용을 Base64 인코딩 형식으로 변환한 다음 전달하도록 한다.   
+마찬가지로 인증서의 데이터가 인코딩된 형식의 파일이 있는 경우 Base64 디코드 옵션을 사용하여 인증서를 디코딩한 후 사용한다.   
