@@ -8,3 +8,90 @@ tags: [Kubernetes]
 ---
 
 # Security Contexts
+
+이전에 언급했던 것 처럼 Docker 컨테이너를 실행할 때 컨테이너를 실행하는 데 사용되는 사용자의 ID, 컨테이너에 추가하거나 컨테이너에서 제거할 수 있는 Linux 기능 등과 같은 일련의 보안 표준을 정의할 수 있는 옵션이 있다.
+```
+docker run --user=1001 ubuntu sleep 3600
+
+docker run --cap-add MAC
+```
+
+이러한 기능은 Kubernetes에서도 구성할 수 있다.
+이미 알다시피 쿠버네티스에서는 컨테이너는 pod에 캡슐화되어 있다.
+그래서 우리는 컨테이너 수준 또는 pod 수준에서 보안 설정을 구성하도록 선택할 수 있다.
+
+Pod 레벨에서 구성하면 설정이 Pod 내의 모든 컨테이너로 전달된다.
+Pod와 컨테이너에서 모두 구성하는 경우 컨테이너의 설정이 Pod의 설정을 재정의한다.
+
+pod 정의 파일로 시작해보자.
+이 pod는 sleep 명령으로 ubuntu 이미지를 실행한다.
+```yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-pod
+spec:
+  containers:
+    - name: ubuntu
+      image: ubuntu
+      command: ["sleep", "3600"]
+```
+
+컨테이너의 보안 컨텍스트를 구성하려면 pod의 spec 섹션 아래에 보안 컨텍스트라는 필드를 추가한다.
+```yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-pod
+spec:
+  securityContext:
+    runAsUser: 1000
+```
+
+Run as user 옵션을 사용하여 pod의 사용자 ID를 설정한다.
+```yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-pod
+spec:
+  securityContext:
+    runAsUser: 1000
+    
+  containers:
+    - name: ubuntu
+      image: ubuntu
+      command: ["sleep", "3600"]
+```
+
+컨테이너 수준에서 동일한 구성을 설정하려면 다음과 같이 전체 섹션을 컨테이너 spec 아래로 이동시킨다.
+```yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-pod
+spec:
+  containers:
+    - name: ubuntu
+      image: ubuntu
+      command: ["sleep", "3600"]
+      securityContext:
+        runAsUser: 1000
+```
+
+capabilities를 추가하려면 capabilities 옵션을 사용하고 pod에 추가할 capabilities 목록을 지정한다.
+```yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-pod
+spec:
+  containers:
+    - name: ubuntu
+      image: ubuntu
+      command: ["sleep", "3600"]
+      securityContext:
+        runAsUser: 1000
+        capabilities:
+          add: ["MAC_ADMIN"]
+```
