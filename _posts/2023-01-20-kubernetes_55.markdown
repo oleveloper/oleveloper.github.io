@@ -10,7 +10,7 @@ tags: [Kubernetes]
 # Network Policies
 
 웹 앱과 데이터베이스 서버를 통한 간단한 트래픽 플로우 예시로 시작해보자.   
-<img width="300" alt="스크린샷 2023-01-20 오후 3 20 55" src="https://user-images.githubusercontent.com/83587720/213630616-478f717b-a734-47b4-ba70-43ffb0b219a7.png">
+<img width="300" alt="스크린샷 2023-01-20 오후 3 20 55" src="https://user-images.githubusercontent.com/83587720/213630616-478f717b-a734-47b4-ba70-43ffb0b219a7.png">   
 사용자에게 프론트 엔드를 제공하는 웹 서버, 백엔드 API를 제공하는 앱 서버 및 데이터베이스 서버가 있다.      
 사용자는 포트 80에서 웹 서버로 요청을 전송한다.      
 웹 서버는 백엔드의 포트 5000에 있는 API 서버로 요청을 전송한다.   
@@ -25,7 +25,7 @@ ingress 및 egress를 정의할 때는 트래픽이 발생한 방향을 확인�
 마찬가지로 백엔드 API 서버의 경우 포트 5000의 웹 서버에서 입력 트래픽을 수신하고 포트 3306에서 데이터베이스 서버로 나가는 트래픽을 가진다.   
 그리고 데이터베이스 서버의 관점에서, 그것은 API 서버로부터 3306 포트에서 ingress 트래픽을 수신한다.   
 이 작업을 수행하는 데 필요한 규칙을 나열해보자면 아래와 같다.   
-<img width="500" alt="스크린샷 2023-01-20 오후 3 55 25" src="https://user-images.githubusercontent.com/83587720/213635702-54baac6b-3c03-4663-9eb3-42b7fa58b002.png">
+<img width="500" alt="스크린샷 2023-01-20 오후 3 55 25" src="https://user-images.githubusercontent.com/83587720/213635702-54baac6b-3c03-4663-9eb3-42b7fa58b002.png">   
 - 웹 서버의 포트 80에서 HTTP 트래픽을 수락하는 데 필요한 ingress rule   
 - 웹 서버에서 API 서버의 포트 5000으로 트래픽을 허용하는 egress rule   
 - API 서버의 포트 000에서 트래픽을 수락하는 ingress rule 및 데이터베이스 서버 포트 3306에 대한 트래픽을 허용하는 egress rule    
@@ -36,7 +36,7 @@ ingress 및 egress를 정의할 때는 트래픽이 발생한 방향을 확인�
 pod와 서비스를 호스팅하는 노드가 있는 클러스터가 있다.    
 각 노드에는 IP 주소가 있으며 서비스뿐만 아니라 각 pod에도 IP 주소가 있다.   
 쿠버네티스에서 네트워킹의 전제 조건 중 하나는 어떤 솔루션을 구현하든 Route와 같은 추가 설정을 구성하지 않고도 pod가 서로 통신할 수 있어야 한다는 것이다.   
-<img width="500" alt="스크린샷 2023-01-20 오후 3 57 38" src="https://user-images.githubusercontent.com/83587720/213636048-c0479313-ff6d-40cd-9859-0f751512a067.png">
+<img width="500" alt="스크린샷 2023-01-20 오후 3 57 38" src="https://user-images.githubusercontent.com/83587720/213636048-c0479313-ff6d-40cd-9859-0f751512a067.png">   
 예를 들어 이 네트워크 솔루션에서 쿠버네티스 클러스터의 노드에 걸쳐 있는 virtual private에 존재하는 모든 pod는 모두 IP 또는 pod 이름 또는 서비스를 사용하여 서로 연결될 수 있어야 한다.   
 쿠버네티스는 기본적으로 클러스터 내의 모든 pod에서 다른 pod 또는 서비스로의 트래픽을 허용하는 모든 allows 규칙으로 구성된다.   
 
