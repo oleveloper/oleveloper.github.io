@@ -1,0 +1,141 @@
+---
+layout: post
+title: "Kubernetes_55 Network Policies"
+date: 2023-01-20
+last_modified_at: 2023-01-20
+categories: [Kubernetes]
+tags: [Kubernetes]
+---
+
+# Network Policies
+
+웹 앱과 데이터베이스 서버를 통한 간단한 트래픽 플로우 예시로 시작해보자.   
+<img width="300" alt="스크린샷 2023-01-20 오후 3 20 55" src="https://user-images.githubusercontent.com/83587720/213630616-478f717b-a734-47b4-ba70-43ffb0b219a7.png">
+사용자에게 프론트 엔드를 제공하는 웹 서버, 백엔드 API를 제공하는 앱 서버 및 데이터베이스 서버가 있다.      
+사용자는 포트 80에서 웹 서버로 요청을 전송한다.      
+웹 서버는 백엔드의 포트 5000에 있는 API 서버로 요청을 전송한다.   
+그런 다음 API 서버는 포트 3306의 데이터베이스 서버에서 데이터를 가져온 다음 사용자에게 데이터를 다시 보낸다.   
+아주 간단한 설정이다.   
+
+여기에는 두 가지 유형의 트래픽이 있다. ingress와 egress이다.   
+웹 서버의 경우 사용자가 수신하는 트래픽이 ingress 트래픽이고 앱 서버에 대한 송신 요청이 egress 트래픽이며 이는 직선 화살표로 표시된다.   
+ingress 및 egress를 정의할 때는 트래픽이 발생한 방향을 확인해야 한다.   
+점선으로 표시된 사용자에 대한 응답은 실제로 중요하지 않다.   
+
+마찬가지로 백엔드 API 서버의 경우 포트 5000의 웹 서버에서 입력 트래픽을 수신하고 포트 3306에서 데이터베이스 서버로 나가는 트래픽을 가진다.   
+그리고 데이터베이스 서버의 관점에서, 그것은 API 서버로부터 3306 포트에서 ingress 트래픽을 수신한다.   
+이 작업을 수행하는 데 필요한 규칙을 나열해보자면 아래와 같다.   
+<img width="500" alt="스크린샷 2023-01-20 오후 3 55 25" src="https://user-images.githubusercontent.com/83587720/213635702-54baac6b-3c03-4663-9eb3-42b7fa58b002.png">
+- 웹 서버의 포트 80에서 HTTP 트래픽을 수락하는 데 필요한 ingress rule   
+- 웹 서버에서 API 서버의 포트 5000으로 트래픽을 허용하는 egress rule   
+- API 서버의 포트 000에서 트래픽을 수락하는 ingress rule 및 데이터베이스 서버 포트 3306에 대한 트래픽을 허용하는 egress rule    
+- 포트 3306에서 트래픽을 허용하는 데이터베이스 서버의 ingress rule   
+이것이 트래픽 흐름과 룰의 기본이다.   
+
+이제 쿠버네티스의 네트워크 보안에 대해 알아보자.   
+pod와 서비스를 호스팅하는 노드가 있는 클러스터가 있다.    
+각 노드에는 IP 주소가 있으며 서비스뿐만 아니라 각 pod에도 IP 주소가 있다.   
+쿠버네티스에서 네트워킹의 전제 조건 중 하나는 어떤 솔루션을 구현하든 Route와 같은 추가 설정을 구성하지 않고도 pod가 서로 통신할 수 있어야 한다는 것이다.   
+<img width="500" alt="스크린샷 2023-01-20 오후 3 57 38" src="https://user-images.githubusercontent.com/83587720/213636048-c0479313-ff6d-40cd-9859-0f751512a067.png">
+예를 들어 이 네트워크 솔루션에서 쿠버네티스 클러스터의 노드에 걸쳐 있는 virtual private에 존재하는 모든 pod는 모두 IP 또는 pod 이름 또는 서비스를 사용하여 서로 연결될 수 있어야 한다.   
+쿠버네티스는 기본적으로 클러스터 내의 모든 pod에서 다른 pod 또는 서비스로의 트래픽을 허용하는 모든 allows 규칙으로 구성된다.   
+
+애플리케이션의 각 구성 요소에 대해 pod를 배포해보자.   
+하나는 프런트 엔드 웹 서버용, 하나는 API 서버용, 하나는 데이터베이스용이다.   
+우리는 최종 사용자뿐만 아니라 사이의 통신을 가능하게 하는 서비스를 만든다.   
+앞서 이야기한 내용에 따르면 기본적으로 세 pod 모두 쿠버네티스 클러스터 내에서 서로 통신할 수 있다.   
+프런트 엔드 웹 서버가 데이터베이스 서버와 직접 통신할 수 '없도록' 하려면 어떻게 해야 할까?   
+보안 팀과 감사 팀에서 이러한 문제를 방지하도록 요구한다고 가정해 보자.   
+
+API 서버에서만 DB 서버로의 트래픽을 허용하는 네트워크 정책을 구현할 수 있다.   
+네트워크 정책은 pod, replica sets 또는 services와 마찬가지로 쿠버네티스 네임스페이스의 다른 개체이다. 네트워크 정책을 하나 이상의 pod에 연결한다.   
+
+네트워크 정책 내에서 규칙을 정의할 수 있다.   
+이 경우 포트 3306의 API pod로부터의 입력 트래픽만 허용한다.   
+이 정책이 생성되면 pod에 대한 다른 모든 트래픽을 차단하고 지정된 규칙과 일치하는 트래픽만 허용한다.   
+다시 말하지만, 이는 네트워크 정책이 적용되는 pod에만 적용된다.   
+
+그렇다면 어떻게 네트워크 정책을 pod에 적용하거나 연결할 수 있을까?   
+이전에 replica sets 또는 services를 pod, label 및 selector에 연결하는 데 사용된 것과 동일한 기술을 사용한다.   
+pod에 레이블을 지정하고 네트워크 정책의 pod selector 필드에 동일한 label을 사용한 다음 rule을 작성한다.   
+```yaml
+podSelector:
+  matchLabels:
+    role: db
+```
+policy type에서 rule이 ingress 트래픽 또는 egress 트래픽 중 어느 쪽을 허용할지 또는 둘 다 허용할지 지정한다.   
+이 경우 DB pod에 대한 ingress 트래픽만 허용하므로 ingress를 추가한다.   
+```yaml
+labels:
+  role: db
+```
+
+다음으로 ingress 규칙을 지정한다. 그러면 API pod의 트래픽이 허용되고 label 및 selector를 사용하여 API pod를 다시 지정할 수 있다.   
+```yaml
+policyTypes:
+- Ingress
+ingress:
+- from:
+  - podSelector:
+      matchLabels:
+        name: api-pod
+  ports:
+  - protocol: TCP
+    port: 3306
+```
+마지막으로, 트래픽을 허용하는 포트는 3306이다.   
+
+이것들을 모두 합쳐보자.   
+빈 객체 정의 파일에서 평소와 같이 API 버전, 종류, 메타데이터 및 사양을 적어보자.   
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: db-policy
+spec:
+```
+API 버전은 networking.kh.io/v1이다.   
+네트워크 정책으로, 정책 이름을 DB-policy로 지정한 다음 사양 섹션에서 먼저 pod selector를 이동하여 이 정책을 DB pod에 적용한다.   
+그런 다음 앞에서 만든 규칙을 그 아래로 이동하면 끝이다.   
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: db-policy
+spec:
+  podSelector:
+    matchLabels:
+      role: db
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          name: api-pod
+    ports:
+    - protocol: TCP
+      port: 3306
+```
+
+첫 번째 네트워크 정책이 준비되었다.   
+이제 정책 유형에 ingress 또는 egress가 있는 경우에만 ingress 또는 egress isolation이 적용된다.   
+```yaml
+  policyTypes:
+  - Ingress
+```
+이 예에서는 policy type에 입력만 있으므로 ingress 트래픽만 격리되고 모든 egress 트래픽은 영향을 받지 않는다.   
+즉, pod는 모든 egress call를 할 수 있으며 차단되지 않는다는 이야기이다.   
+따라서 egress 또는 ingress isolation을 수행하려면 여기에 표시된 정책 유형 아래에 이러한 정책을 추가해야 한다.   
+그렇지 않으면 isolation을 할 수 없다.   
+
+kubectl create 명령을 실행하여 정책을 생성한다.   
+```
+kubectl create -f policy-definition.yaml
+```
+네트워크 정책은 쿠버네티스 클러스터에 구현된 네트워크 솔루션에 의해 시행되며 모든 네트워크 솔루션이 네트워크 정책을 지원하는 것은 아니다.   
+지원되는 몇 가지는 큐브 라우터, Calico, Romana 및 WaveNet이다.   
+네트워킹 솔루션으로 Flannel을 사용한 경우 이 기록에서는 네트워크 정책을 지원하지 않는다.   
+네트워크 정책에 대한 지원을 보려면 네트워크 솔루션 설명서를 참조하자.   
+또한 네트워크 정책을 지원하지 않는 솔루션으로 구성된 클러스터에서도 정책을 생성할 수 있지만 적용되지는 않는다.   
+네트워크 솔루션이 네트워크 정책을 지원하지 않는다는 오류 메시지가 표시되지 않는다.   
