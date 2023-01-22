@@ -8,3 +8,85 @@ tags: [Kubernetes]
 ---
 
 # Persistent Volume Claims 
+
+이제 persistent volume claims을 생성하여 스토리지를 node에서 사용할 수 있도록 해보자.   
+persistent volume 및 persistent volume claim은 쿠버네티스 네임스페이스에 있는 두 개의 개별 object이다.   
+<img width="500" alt="스크린샷 2023-01-23 오전 1 59 29" src="https://user-images.githubusercontent.com/83587720/213928705-09df57a9-b09d-4fa4-8450-6bbb3dc76c06.png">
+관리자는 persistent volume set을 생성하고 사용자는 persistent volume claim을 생성하여 스토리지를 사용한다.   
+persistent volume claim이 생성되면 쿠버네티스는 볼륨에 설정된 요청 및 속성을 기반으로 persistent volume을claim에 바인딩한다.   
+<img width="500" alt="스크린샷 2023-01-23 오전 2 00 35" src="https://user-images.githubusercontent.com/83587720/213928970-6eefac0f-45f3-4d1b-b736-05cd1ccb5579.png">
+모든 persistent volume claim은 단일 persistent volume에 바인딩된다.   
+바인딩 프로세스 도중, 쿠버네티스는 claim에서 요청한 대로 충분한 용량을 가지고 있고 Access modes, Volume modes, Storage Class 등과 같은 기타 모든 속성들을 가진 persistent volume을 찾으려고 한다.   
+그러나 단일 claim에 대해 여러 개의 일치 항목이 있고 특정 볼륨을 구체적으로 사용하려는 경우에 label 및 selector를 사용하여 적절한 볼륨에 바인딩할 수 있다.   
+<img width="500" alt="스크린샷 2023-01-23 오전 2 03 29" src="https://user-images.githubusercontent.com/83587720/213929327-87dc0fc7-7e60-416b-acd8-881588ff6ff6.png">   
+마지막으로, 더 나은 옵션이 없는 경우 더 작은 claim이 모든 기준과 일치하는 더 큰 볼륨에 바인딩될 수 있다.   
+claim과 볼륨 사이에는 일대일 관계가 있으므로 다른 claim은 볼륨에 남아 있는 용량을 활용할 수 없다.   
+사용 가능한 볼륨이 없는 경우 클러스터에서 새 볼륨을 사용할 수 있게 될 때까지 persistent volume claim은 pending 상태로 유지된다.   
+새 볼륨을 사용할 수 있게 되면 claim이 자동으로 새로 사용할 수 있는 볼륨에 바인딩된다.   
+
+이제 persistent volume claim을 생성해 보자.   
+API 버전을 V1로 설정하고 persistent volume claim을 지정한다.   
+```yml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: myclaim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+```   
+우리는 그것을 spec에서 "myclaim"이라고 명명할 것이다.   
+액세스 모드를 한 번 읽고 쓰기로 설정한다.   
+그리고 500MB의 스토리지를 요청하도록 리소스를 설정한다.   
+그 다음 kubectl create 명령을 사용하여 claim을 만든다.   
+```yml
+kubectl create -f pvc-definition.yaml
+```
+생성된 claim을 보려면 kubectl get persistentvolumeclaim 명령을 입력한다.   
+```yml
+kubectl get persistentvolumeclaim
+```
+claim이 생성되면 쿠버네티스는 이전에 생성된 볼륨을 확인한다.   
+액세스 모드가 일치한다.   
+```yml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-vol1
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  awsElasticBlockStore:
+    volumeID: <volume-id>
+    fsType: ext4
+```
+요청된 용량은 500MB이지만 볼륨은 1GB의 스토리지로 구성되어 있다.   
+사용 가능한 다른 볼륨이 없으므로 persistent volume claim은 persistent volume에 바인딩된다.   
+get volumes 명령을 실행하면 다시 claim이 생성한 persistent volume에 바인딩되어 있음을 확인할 수 있다.   
+
+PVC를 삭제하려면 kubectl delete persistentvolumeclaim 명령을 실행한다.   
+```yml
+kubectl delete persistentvolumeclaim myclaim
+```
+
+claim이 삭제되면 기본 persistent volume은 어떻게 될까?   
+볼륨에 적용할 작업을 definition file에 지정할 수 있다. 기본적으로 유지(Retain)되도록 설정되어 있다.   
+```yml
+persistentVolumeReclaimPolicy: Retain
+```
+이렇게 설정되어 있으면 persistent volume은 관리자가 수동으로 삭제할 때까지 유지된다. 다른 claim에서는 재사용할 수 없고 자동으로 삭제할 수 있다.   
+아래와 같이 작성하면 claim이 삭제되는 즉시 볼륨도 삭제된다.   
+```yml
+persistentVolumeReclaimPolicy: Retain
+```
+따라서 end storage device의 스토리지를 확보할 수 있다.   
+또는 세 번째 방법은 recycle하는 것이다.   
+```yml
+persistentVolumeReclaimPolicy: Recycle
+```
+이 경우 데이터 볼륨의 데이터는 다른 claim에 사용하기 전에 스크러빙된다.   
