@@ -9,7 +9,7 @@ tags: [Kubernetes]
 
 # Persistent Volumes
 
-지금까지는 볼륨을 생성할 때, pod 정의 파일 내에서 볼륨을 구성했기 때문에 볼륨에 대한 스토리지를 구성하는 데 필요한 모든 구성 정보를 pod 정의 파일 내에 저장했다.
+지금까지는 볼륨을 생성할 때, pod 정의 파일 내에서 볼륨을 구성했기 때문에 볼륨에 대한 스토리지를 구성하는 데 필요한 모든 구성 정보를 pod 정의 파일 내에 저장했다.   
 ```yml
 volumes:
 - name: data-volume
@@ -18,17 +18,17 @@ volumes:
     fsType: ext4
 ```
 
-많은 사용자가 pod별로 스토리지를 구성하고 pod를 deploy하는 대규모 환경이 있다고 하자.
-어떤 스토리지 솔루션을 사용하든 pod를 배포하는 사용자는 자신의 환경에 있는 모든 pod 정의 파일에 이를 구성해야 한다.
-그리고 변경이 있을 때마다 사용자는 자신의 모든 pod에서 변경해야 한다.
-대신 스토리지를 보다 중앙 집중식으로 관리하고자 한다.
-관리자가 대규모 스토리지 풀을 생성한 후 필요에 따라 사용자가 해당 풀에서 조각을 분리할 수 있는 방식으로 구성하고자 한다.
+많은 사용자가 pod별로 스토리지를 구성하고 pod를 deploy하는 대규모 환경이 있다고 하자.   
+어떤 스토리지 솔루션을 사용하든 pod를 배포하는 사용자는 자신의 환경에 있는 모든 pod 정의 파일에 이를 구성해야 한다.   
+그리고 변경이 있을 때마다 사용자는 자신의 모든 pod에서 변경해야 한다.   
+대신 스토리지를 보다 중앙 집중식으로 관리하고자 한다.   
+관리자가 대규모 스토리지 풀을 생성한 후 필요에 따라 사용자가 해당 풀에서 조각을 분리할 수 있는 방식으로 구성하고자 한다.   
 
-persistent voluems은 바로 이러한 상황에서 우리에게 도움을 준다.
-persistent volumes은 클러스터에 애플리케이션을 배포하는 사용자가 사용하도록 관리자가 구성한 클러스터 전체 스토리지 볼륨 풀이다.
-사용자는 persistent volumes claim을 사용하여 이 풀에서 스토리지를 선택할 수 있다.
-<img width="500" alt="스크린샷 2023-01-23 오전 12 58 22" src="https://user-images.githubusercontent.com/83587720/213925764-d134af87-6ac3-408f-bcd6-d11a90417890.png">
-이제 persistent volumes을 생성해 보겠다.
+persistent voluems은 바로 이러한 상황에서 우리에게 도움을 준다.   
+persistent volumes은 클러스터에 애플리케이션을 배포하는 사용자가 사용하도록 관리자가 구성한 클러스터 전체 스토리지 볼륨 풀이다.   
+사용자는 persistent volumes claim을 사용하여 이 풀에서 스토리지를 선택할 수 있다.   
+<img width="500" alt="스크린샷 2023-01-23 오전 12 58 22" src="https://user-images.githubusercontent.com/83587720/213925764-d134af87-6ac3-408f-bcd6-d11a90417890.png">   
+이제 persistent volumes을 생성해 보겠다.   
 ```yml
 apiVersion: v1
 kind: PersistentVolume
@@ -42,28 +42,28 @@ spec:
   hostPath:
     path: /tmp/data
 ```
-기본 템플릿으로 시작하여 API 버전을 업데이트한다.
-유형을 persistent volumes으로 설정하고 이름을 pv-vol1로 지정한다.
+기본 템플릿으로 시작하여 API 버전을 업데이트한다.   
+유형을 persistent volumes으로 설정하고 이름을 pv-vol1로 지정한다.   
 
-spec 섹션에서는 액세스 모드를 지정한다.
-액세스 모드는 읽기 전용 모드 또는 읽기/쓰기 모드 등에서 볼륨을 호스트에 마운트하는 방법을 정의한다.
-지원되는 값은 ReadOnlyMany, ReadWriteOnce 또는 ReadWriteMany 모드이다.
+spec 섹션에서는 액세스 모드를 지정한다.   
+액세스 모드는 읽기 전용 모드 또는 읽기/쓰기 모드 등에서 볼륨을 호스트에 마운트하는 방법을 정의한다.   
+지원되는 값은 ReadOnlyMany, ReadWriteOnce 또는 ReadWriteMany 모드이다.   
 
-다음은 용량이다.
-persistent volumes에서 사용할 스토리지 양을 지정한다. (여기에서는 1Gi이다.)
+다음은 용량이다.   
+persistent volumes에서 사용할 스토리지 양을 지정한다. (여기에서는 1Gi이다.)   
 
-다음으로는 노드의 로컬 디렉토리에서 스토리지를 사용하는 hostPath 옵션을 살펴보겠다.
-먼저 노드의 로컬 디렉토리에서 스토리지를 사용하는 hostPath 옵션을 살펴보겠다.
-이 옵션은 프로덕션 환경에서 사용할 수 없다.
+다음으로는 노드의 로컬 디렉토리에서 스토리지를 사용하는 hostPath 옵션을 살펴보겠다.   
+먼저 노드의 로컬 디렉토리에서 스토리지를 사용하는 hostPath 옵션을 살펴보겠다.   
+이 옵션은 프로덕션 환경에서 사용할 수 없다.   
 
-볼륨을 생성하려면 kubectl create 명령을 실행하고 생성된 볼륨을 나열하려면 kubectl get persistentvolume 명령을 실행한다.
+볼륨을 생성하려면 kubectl create 명령을 실행하고 생성된 볼륨을 나열하려면 kubectl get persistentvolume 명령을 실행한다.   
 ```
 kubectl create -f pv-definition.yaml
 
 kubectl get persistentvolume
 ```
 
-hostPath 옵션을 지원되는 스토리지 솔루션 중 하나(예: AWS Elastic Block Store)로 교체한다.
+hostPath 옵션을 지원되는 스토리지 솔루션 중 하나(예: AWS Elastic Block Store)로 교체한다.   
 ```yml
 awsElasticBlockStore:
   volumeID: <volume-id>
