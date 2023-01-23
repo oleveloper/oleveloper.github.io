@@ -8,3 +8,68 @@ tags: [Kubernetes]
 ---
 
 # Storage Class
+우리는 지금까지 Persistent Volume(이하 PV)를 생성하고 Persistent Volume Claim(이하 PVC)을 생성하여 해당 스토리지를 할당한 pod 정의 파일의 PVC를 볼륨으로 사용하는 방법에 대해 이야기했다.   
+<img width="500" alt="스크린샷 2023-01-23 오후 10 36 57" src="https://user-images.githubusercontent.com/83587720/214053147-3b5153a5-5b6e-4d74-98ad-15cddc42aed3.png">   
+pv-definition.yaml의 경우 Google Cloud persistent 디스크에서 PVC를 생성한다.   
+여기서 문제는 이 PV가 생성되기 전에 Google Cloud에서 디스크를 생성해야 한다는 것이다.   
+```yml
+gcloud beta compute disks create \
+  --size 1GB
+  --region us-east1
+  pd-disk
+```
+애플리케이션에 저장 공간이 필요할 때마다 먼저 Google Cloud에서 수동으로 디스크를 프로비저닝한 다음, 생성한 디스크와 동일한 이름을 사용하여 persistent volume 정의 파일을 수동으로 생성해야 한다.   
+이를 정적 프로비저닝 볼륨(static provisioning volume)이라고 한다.   
+
+애플리케이션이 필요로 할 때 볼륨이 자동으로 프로비저닝되고 스토리지 클래스가 제공되는 것이 좋을 것이다.   
+스토리지 클래스를 사용하면 Google 스토리지와 같은 provisioner를 정의할 수 있다.   
+이 provisioner는 Google Cloud에서 스토리지를 자동으로 프로비저닝하고 클레임이 발생할 때 pod에 연결할 수 있다.   
+이를 볼륨의 동적 프로비저닝이라고 한다.   
+동적 프로비저닝을 위해 API 버전을 storage.k8.io/v1 로 설정하고 provisioner를 kubernetes.io/gce-pd로 하여 스토리지 클래스 개체를 생성한다.   
+```yml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: google-storage
+provisioner: kubernetes.io/gce-pd
+```
+
+스토리지에 PVC를 사용하는 포드가 있고 PVC가 PV에 바인딩되어 있는 원래 상태로 돌아가보자.   
+이제 스토리지 클래스가 있으므로 PV 정의(pv-definition.yaml)가 더 이상 필요하지 않는다. 이는 스토리지 클래스가 생성되면 PV 및 관련 스토리지가 자동으로 생성되기 때문이다.   
+<img width="1275" alt="스크린샷 2023-01-23 오후 11 01 28" src="https://user-images.githubusercontent.com/83587720/214058501-6b52b4ca-81fd-4965-b795-686ac9ff5fcf.png">   
+
+PVC에서 정의한 스토리지 클래스를 사용하려면 PVC 정의(pvc-definition.yaml)에 스토리지 클래스 이름을 지정한다.   
+```yml
+storageClassName: google-storage
+```
+이렇게 PVC는 사용할 스토리지 클래스를 알 수 있다.   
+
+PVC가 생성되면, PVC와 연결된 스토리지 클래스는 정의된 provisioner를 사용하여 GCP에 필요한 크기로 새 디스크를 프로비저닝한 다음 persistent volume을 생성하고 PVC를 해당 볼륨에 바인딩한다.   
+PV는 여전히 생성되므로 더 이상 수동으로 생성할 필요가 없다. 이는 Storage class에서 자동으로 생성된다.   
+
+앞서 GCE provisioner를 사용하여 GCP에 볼륨을 생성했다.   
+AWS EBS(Elastic Block Store), Azure File, Azure Disk, CephFS, Portworx, ScaleIO와 같은 많은 다른 provisioner도 있다.   
+이러한 각 provisioner를 사용하여 프로비저닝할 디스크 유형, 복제 유형 등과 같은 추가 매개 변수를 전달할 수 있다.   
+
+매개 변수는 사용 중인 provisioner와 매우 관련이 있다.   
+Google persistent disk의 경우 standard 또는 ssd로 유형을 지정할 수 있다.   
+또한 replication mode(none 또는 regional-pd)를 지정할 수 있다.   
+```yml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: google-storage
+provisioner: kubernetes.io/gce-pd
+parameters:
+  type: pd-standard [pd-standard | pd-ssd]
+  replication-type:none [none | regional-pd]
+```
+
+각각 다른 유형의 디스크를 사용하여 서로 다른 스토리지 클래스를 생성할 수 있다.   
+예를 들어 표준 Disk를 사용하는 silver storage class, SSD 드라이브를 사용하는 gold class, SSD 드라이브 및 복제를 사용하는 platinum class가 있다.   
+```
+metadata:
+  name: silver | gold | platinum
+```
+이것이 바로 스토리지 클래스라고 불리는 이유이다. 다른 서비스 클래스를 만들 수 있기 때문이다.   
+PVC를 생성할 때 볼륨에 필요한 스토리지 클래스를 지정하기만 하면 된다.   
