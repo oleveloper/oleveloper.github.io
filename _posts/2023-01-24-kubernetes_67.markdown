@@ -90,7 +90,7 @@ IP 주소는 무엇일까? 우리는 각 bridge 네트워크가 자체 서브넷
 CNI는 컨테이너를 생성하는 즉시 스크립트를 호출하는 방법을 Kubernetes에 알려준다.   
 <img width="436" alt="스크린샷 2023-01-25 오전 1 04 53" src="https://user-images.githubusercontent.com/83587720/214344906-125fad29-6899-4b10-b843-06bc6e1fe20a.png">   
 
-CNI는 우리에게 당신의 스크립트가 이렇게 보여야 한다고 말한다.   
+CNI는 우리에게 스크립트가 이렇게 보여야 한다고 말한다.   
 <img width="436" alt="스크린샷 2023-01-25 오전 1 05 25" src="https://user-images.githubusercontent.com/83587720/214345024-d7474f7e-e1d8-4025-a2c8-6f7800e0caef.png">   
 
 그래서 우리는 CNI 기준에 맞게 스크립트를 조금 수정해야 한다.   
