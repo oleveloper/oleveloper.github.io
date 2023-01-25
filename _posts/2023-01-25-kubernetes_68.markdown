@@ -8,3 +8,25 @@ tags: [Kubernetes]
 ---
 
 # CNI in kubernetes
+
+여기에서는 네트워크 플러그인을 사용하도록 Kubernetes가 어떻게 구성되어 있는지 알아보도록 한다.
+prerequisite에서 이야기한 바와 같이, CNI는 컨테이너 실행 시간에 따른 컨테이너 실행 시간의 책임을 정의한다.
+Kubernetes는 컨테이너 네트워크 네임스페이스를 생성하고 올바른 네트워크 플러그인을 호출하여 해당 네임스페이스를 식별하고 올바른 네트워크에 연결한다. 
+쿠버네티스가 사용할 CNI 플러그인은 어디에 지정해야 할까? 
+컨테이너를 생성한 후 해당 컴포넌트가 적절한 네트워크 플러그인을 호출해야 하므로 컨테이너 생성을 담당하는 Kubernetes 내의 구성 요소에서 CNI 플러그인을 호출해야 한다.
+CNI 플러그인은 클러스터의 각 노드에 있는 kubelet 서비스에서 구성된다.
+kubelet 서비스 파일을 보면 네트워크 플러그인이라는 옵션이 CNI로 설정된 것을 볼 수 있다.
+<img width="791" alt="스크린샷 2023-01-25 오후 11 03 13" src="https://user-images.githubusercontent.com/83587720/214583795-904d6087-d38f-4189-a62a-2f16cd878ab0.png">
+실행 중인 kubelet 서비스 정보를 볼 수 있다. 
+CNI로 설정되어 있는 네트워크 플러그인이나, CNI bin 디렉토리 및 CNI conflict 디렉토리와 같이 CNI와 관련된 몇 가지 다른 옵션들을 볼 수 있다.
+```
+ps -aux | grep kubelet
+```
+
+CNI bin 디렉토리에는 bridge, dscp, flannel 등의 실행 파일로 지원되는 모든 CNA 플러그인이 있다.
+CNI conflict 디렉토리에는 configuration file set이 있다.
+여기서 kubelet는 어떤 플러그인을 사용해야 하는지 알아본다.
+```
+ls /etc/cni/net.d
+```
+위 명령어의 결과로 여러 개의 파일이 나오면 알파벳 순서로 파일을 선택한다.
