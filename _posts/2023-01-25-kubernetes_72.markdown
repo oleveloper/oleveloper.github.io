@@ -8,3 +8,73 @@ tags: [Kubernetes]
 ---
 
 # DNS in kubernetes
+
+![image](https://user-images.githubusercontent.com/83587720/214594258-7e95516b-da95-42f9-8772-144de6ba3a4e.png)
+
+## 서비스를 프록시하는 이유
+쿠버네티스 DNS 서버를 사용하여 외부 서비스를 마스킹하는 데에는 여러 가지 이유가 있다. 한 가지 예는 Endpoint 변경에 관한 것이다. 서비스 Endpoint가 변경되고 개발자가 코드에서 Endpoint를 변경하는 대신 개발자가 실제로 발생하는 상황에 관계없이 사용하기 쉬운 internal service endpoint를 가리키도록 할 수 있다.   
+
+이제 애플리케이션 코드로 이동하는 대신 Kubernetes YAML 구성 파일을 통해 언제든지 외부 서비스 엔드포인트를 변경할 수 있다.   
+
+## 외부 이름 프록시 만들기
+외부 이름 프록시를 만드는 것은 매우 간단하다. 우리가 해야 할 대부분의 작업은 쿠버네티스 yaml 파일에 있다. 이 경우 아래와 같이 새 yaml 파일을 만든다.   
+```yml
+apiVersion: v1
+kind: Service # a way for the outside world to reach the Pods
+metadata:
+  # the name of our external Service
+  name: external-service
+spec:
+  # Service ports
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+  # Points to external name
+  type: ExternalName
+  externalName: www.jonbcampos.com # the external url
+  selector:
+    app: kubernetes-series
+```
+이 구성 파일은 외부 이름 형식의 새 서비스를 만들고 선택한 URL에 외부 이름을 가리킨다.   
+이제 외부 서비스가 구성되었으므로 응용 프로그램 코드에서 외부 서비스를 호출하기만 하면 된다.   
+
+```
+router.get('/foreign', function (req, res, next) {
+    const url = 'http://external-service.default/some_path/';
+    http.get(url, response => {
+        let data = '';
+        response.on('data', chunk => {
+            data += chunk;
+        });
+        response.on('end', () => {
+            res.status(200).json(JSON.parse(data));
+        });
+    }).on('error', err => {
+        throw err;
+    });
+});
+```
+
+## 외부 이름 프록시 작동 보기
+시작 스크립트를 실행하여 Google Cloud에서 쿠버네티스 클러스터를 설정하고 애플리케이션 코드를 배포할 수 있다.   
+```
+$ git clone https://github.com/jonbcampos/kubernetes-series.git
+$ cd ~/kubernetes-series/external-communication/scripts
+$ sh startup.sh
+$ sh deploy.sh
+$ sh check-endpoint.sh service
+```
+서비스를 사용할 수 있게 되면 /foreign 엔드포인트를 사용해 호출 결과를 볼 수 있다.    
+http://[your cluster IP Address]/foreign.   
+
+## Teardown
+사용을 하지 않게 된다면 클러스터를 실행하는 데 사용하는 VM에 대한 요금이 청구되지 않도록 프로젝트를 정리해야 한다.    
+클라우드 셸로 돌아가서 해제 스크립트를 실행하여 프로젝트를 정리하자. 이렇게 하면 클러스터와 빌드한 컨테이너가 삭제된다.   
+```
+$ cd ~/kubernetes-series/external-communication/scripts
+$ sh teardown.sh
+```
+
+reference: https://medium.com/google-cloud/kubernetes-dns-proxy-with-services-d7d9e800c329
