@@ -1,0 +1,10 @@
+---
+layout: post
+title: "Kubernetes_76 Choosing Kubernetes Infrastructure"
+date: 2023-01-27
+last_modified_at: 2023-01-27
+categories: [Kubernetes]
+tags: [Kubernetes]
+---
+
+# Choosing Kubernetes Infrastructure
