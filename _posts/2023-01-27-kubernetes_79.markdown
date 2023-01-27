@@ -8,3 +8,50 @@ tags: [Kubernetes]
 ---
 
 # Deploy with Kubeadm - Provision VMs with Vagrant
+
+## Vagrant file 내려받기
+```sh
+git clone https://github.com/kodekloudhub/certified-kubernetes-administrator-course.git
+```
+
+## Vargrant file 확인하기
+```sh
+vi Vagrantfile
+```
+Master node와 Worker node의 번호를 확인하고, IP 네트워크 범위를 확인한다.   
+VM이 생성되면 이 범위 내의 IP주소를 얻게 된다.    
+<img width="375" alt="스크린샷 2023-01-27 오후 10 55 23" src="https://user-images.githubusercontent.com/83587720/215103768-c1a863ad-5367-4608-8b7d-33775e0ffdf5.png">
+
+## Vagrant file 실행 및 VM상태 확인
+```sh
+vagrant status
+```
+<img width="696" alt="스크린샷 2023-01-27 오후 10 58 29" src="https://user-images.githubusercontent.com/83587720/215104415-8a6ffac8-d045-4729-89e8-d115f338238e.png">
+
+위 명령을 실행하면 machine의 이름은 볼 수 있지만 이것들은 아직 생성되지 않은 상태이다.   
+생성을 위해서 프로비저닝을 해야 한다.   
+
+## Vagrant command 실행
+```sh
+vagrant up
+```
+vagrant를 실행하면 ubuntu bionic 64 base image를 사용하고, VM이 프로비저닝 된다.   
+먼저 kube-master가 프로비저닝 되고, kube-node-01, kube-node-02가 순차적으로 프로비저닝 될 것이다.   
+
+```sh
+vagrant status
+```
+위 명령어를 통해 상태를 다시 확인하면 모두 실행 상태일 것이다.    
+<img width="637" alt="스크린샷 2023-01-27 오후 11 01 14" src="https://user-images.githubusercontent.com/83587720/215105003-3920442d-34ff-4ab0-8b4b-3ef0d06c7313.png">   
+
+## 이 시스템 중 하나에 접근하기
+```sh
+vagrant ssh kubemaster
+```
+위 명령어를 실행하면 kubemaster 노드로 들어갈 것이다.   
+아래 uptime 명령을 실행해 시스템 가동을 확인해보자.   
+```sh
+uptime
+```
+
+node01, node02도 마찬가지로 테스트 해보도록 하자.    
