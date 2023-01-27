@@ -1,0 +1,10 @@
+---
+layout: post
+title: "Kubernetes_79 Deploy with Kubeadm - Provision VMs with Vagrant"
+date: 2023-01-27
+last_modified_at: 2023-01-27
+categories: [Kubernetes]
+tags: [Kubernetes]
+---
+
+# Deploy with Kubeadm - Provision VMs with Vagrant
