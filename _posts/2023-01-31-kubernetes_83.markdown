@@ -1,0 +1,10 @@
+---
+layout: post
+title: "Kubernetes_83 Advanced Kubectl Commands"
+date: 2023-01-31
+last_modified_at: 2023-01-31
+categories: [Kubernetes]
+tags: [Kubernetes]
+---
+
+# Advanced Kubectl Commands
