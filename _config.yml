@@ -17,7 +17,9 @@ title: 괴발자의 블로그
 email: oleveloper@gmail.com 
 name: oleveloper 
 description: >- # this means to ignore newlines until "baseurl:"
-     
+markdown: kramdown
+style: kjhealy
+
 keywords: [Your keywords]
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://oleveloper.github.io" # the base hostname & protocol for your site, e.g. http://example.com
