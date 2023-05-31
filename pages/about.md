@@ -17,6 +17,9 @@ __TmaxSoft__
 
 ### Other
 
+`2023.5 - now`
+__GopherCon Korea Organizer__
+
 `2023.4 - now`
 __Cal.com translator__
 
