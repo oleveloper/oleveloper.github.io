@@ -29,7 +29,7 @@ __Hanbit Previewers__
 `2023.1 - now`
 __PyCon.KR 2023 Organizer__
 
-`2022.10 - 8`
+`2022.10 - 2023.8`
 __F-Lab Coach__
 
 `2022.12`
