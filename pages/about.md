@@ -17,8 +17,8 @@ __TmaxSoft__
 
 ### Other
 
-`2023.5 - now`
-__GopherCon Korea Organizer__
+`2023.5 - 8`
+__GopherCon Korea 2023 Organizer__
 
 `2023.4 - now`
 __Cal.com translator__
@@ -27,11 +27,13 @@ __Cal.com translator__
 __Hanbit Previewers__   
 -- 혼자 공부하는 C언어   
 -- 더 나은 웹 개발을 위한 가이드
+-- Python Crash Course
+-- 그림으로 배우는 리눅스 구조
 
 `2023.1 - now`
-__PyCon.KR Organizer__
+__PyCon.KR 2023 Organizer__
 
-`2022.10 - now`
+`2022.10 - 8`
 __F-Lab Coach__
 
 `2022.12`
