@@ -40,7 +40,7 @@ __CodeStates GoLang Code Reviewer__
 -- 더 나은 웹 개발을 위한 가이드   
 -- Python Crash Course   
 -- 그림으로 배우는 리눅스 구조   
-
+-- 앤서블로 시작하는 인프라 자동화   
 
 ## Skill
 ### Front-End
