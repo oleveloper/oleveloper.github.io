@@ -20,10 +20,10 @@ __TmaxSoft__
 `2023.5 - 8`
 __GopherCon Korea 2023 Organizer__
 
-`2023.4 - now`
+`2023.4 - `
 __Cal.com translator__
 
-`2023.4 - now`
+`2023.4 - 2023.12`
 __Hanbit Previewers__   
 
 `2023.1 - now`
