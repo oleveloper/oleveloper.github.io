@@ -16,6 +16,8 @@ __LG CNS__
 __TmaxSoft__
 
 ### Other
+`2024.4 - `
+__JPUB IT 전문서 리뷰어 3기__
 
 `2023.5 - 8`
 __GopherCon Korea 2023 Organizer__
@@ -23,7 +25,7 @@ __GopherCon Korea 2023 Organizer__
 `2023.4 - `
 __Cal.com translator__
 
-`2023.4 - 2023.12`
+`2023.4 - 2024.12`
 __Hanbit Previewers__   
 
 `2023.1 - now`
