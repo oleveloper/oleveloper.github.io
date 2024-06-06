@@ -6,6 +6,8 @@ last_modified_at: 2024-06-06
 categories: [Book Review]
 tags: [Book Review, Rust]
 ---
+# 러스트 서버, 서비스, 앱 만들기
+## 백엔드 서버, 서비스, 프런트엔드 모두 러스트로 안전하고 빠르게 구축하기
 
 Rust 관련 서적에 뜬금없이 Go언어부터 이야기하게 되어 Rust에게 미안하지만, Go언어에 관심을 갖게 되면서 Rust에도 관심을 가지게 되었다.
 은근히 자주 Go와 Rust가 비교가 되는 것을 봐왔고, 왜인지는 모르겠지만 Go언어가 마음에 들어 Go를 공부하기로 했었기에 Rust는 뒷전이었다.   
